@@ -1,8 +1,8 @@
-from dataclasses import dataclass, field
 from typing import List
+from pydantic import BaseModel
 
-@dataclass
-class Event:
+
+class Event(BaseModel):
     order: int
     date: str
     location: str
@@ -10,15 +10,15 @@ class Event:
     description: str
     detail: List[str]
 
-@dataclass
-class Container:
+
+class Container(BaseModel):
     bill_of_lading_number: str
     number: str
     shipped_from: str
     shipped_to: str
     port_of_load: str
     port_of_discharge: str
-    events: List[Event] = field(default_factory=list)
+    events: List[Event] = []
 
     @staticmethod
     def from_api_response(response_data):
@@ -36,14 +36,14 @@ class Container:
                 shipped_to=bl_data["GeneralTrackingInfo"]["ShippedTo"],
                 port_of_load=bl_data["GeneralTrackingInfo"]["PortOfLoad"],
                 port_of_discharge=bl_data["GeneralTrackingInfo"]["PortOfDischarge"],
-                events=[
+                events=[  # Criando a lista de eventos com base nos dados
                     Event(
                         order=event["Order"],
                         date=event["Date"],
                         location=event["Location"],
                         un_location_code=event["UnLocationCode"],
                         description=event["Description"],
-                        detail=event.get("Detail", [])
+                        detail=event.get("Detail", [])  # Garantindo que o campo 'Detail' não seja nulo
                     ) for event in container_data["Events"]
                 ]
             )

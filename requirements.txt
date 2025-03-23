@@ -1,0 +1,5 @@
+pymongo
+pydantic
+python-dotenv
+typing
+dataclasses

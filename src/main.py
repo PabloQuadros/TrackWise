@@ -1,5 +1,6 @@
 import requests
-from src.models.container import Container 
+from models.container import Container 
+from services.container_service import save_container, get_container_by_number
 
 def get_tracking_info(tracking_number):
     url = "https://www.msc.com/api/feature/tools/TrackingInfo"
@@ -28,4 +29,6 @@ if __name__ == "__main__":
     result = get_tracking_info(tracking_number)
     container = Container.from_api_response(result)
     if result:
-        print("Dados do rastreamento:", container )
+        save_container(container)
+        containerMongo = get_container_by_number(container.number)
+        print(containerMongo)
