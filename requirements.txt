@@ -4,3 +4,4 @@ python-dotenv
 typing
 dataclasses
 fastapi
+uvicorn

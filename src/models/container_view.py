@@ -1,8 +1,7 @@
-from typing import List
-from pydantic import BaseModel
+from typing import List, Optional
+from pydantic import BaseModel, Field
 
-
-class Event(BaseModel):
+class EventView(BaseModel):
     order: int
     date: str
     location: str
@@ -10,8 +9,8 @@ class Event(BaseModel):
     description: str
     detail: List[str]
 
-
-class Container(BaseModel):
+class ContainerView(BaseModel):
+    id: Optional[str] = Field(alias="_id") 
     bill_of_lading_number: str
     booking_number: str
     number: str
@@ -19,5 +18,4 @@ class Container(BaseModel):
     shipped_to: str
     port_of_load: str
     port_of_discharge: str
-    events: List[Event] = []
-    
+    events: List[EventView] = []

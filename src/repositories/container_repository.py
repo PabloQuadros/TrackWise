@@ -12,7 +12,7 @@ class ContainerRepository:
         print("Container salvo com sucesso!")
 
     def get_by_number(self, container_number: str) -> Optional[dict]:
-        return self.collection.find_one({"ContainerNumber": container_number})
+        return self.collection.find_one({"number": container_number})
     
 def get_container_repository():
     return ContainerRepository()
