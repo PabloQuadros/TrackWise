@@ -3,3 +3,4 @@ pydantic
 python-dotenv
 typing
 dataclasses
+fastapi
