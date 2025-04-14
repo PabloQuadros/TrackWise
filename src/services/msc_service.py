@@ -27,10 +27,7 @@ class MscService:
         
     def validate_container_existence(self, container_number):
         response = self.get_tracking_info(container_number)
-        if response.get("IsSuccess") is True:
-            return True
-        else:
-            return False
+        return response
 
 def get_msc_service():
     return MscService()

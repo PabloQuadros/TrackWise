@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
@@ -13,7 +13,7 @@ class Event(BaseModel):
 
 class Container(BaseModel):
     bill_of_lading_number: str
-    booking_number: str
+    booking_number: Optional[str] = None
     number: str
     shipped_from: str
     shipped_to: str

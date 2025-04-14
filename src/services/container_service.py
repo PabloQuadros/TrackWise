@@ -21,11 +21,14 @@ class ContainerService:
 
         #Verifica se o container existe no site do armador
         existing_on_shipowner = self.msc_service.validate_container_existence(container_data.number)
-        if existing_on_shipowner is False:
+        if existing_on_shipowner.get("IsSuccess") is False:
             raise HTTPException(status_code=404, detail="O número do container informado não foi localizado no site do armador")
 
-        # Salva o novo container
-        self.repository.save(self.container_mapper.to_container_domain_model(container_data))
+        #Mapeia da response do armador para a entidade de dominio
+        container = self.container_mapper.from_api_response_to_domain_model(existing_on_shipowner)
+        #Completa com as informações da requisição
+        container = self.container_mapper.complete_container_model_with_request_data(container, container_data)
+        self.repository.save(container)
         return {"message": "Container registrado com sucesso!", "data": container_data.dict()}
 
     def find_by_container_number(self, container_number: str) -> Optional[dict]:
