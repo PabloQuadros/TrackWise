@@ -3,7 +3,7 @@ from typing import Annotated, Optional
 import re
 
 class ContainerCreate(BaseModel):
-    container_number: Annotated[
+    number: Annotated[
         str,
         StringConstraints(min_length=11, max_length=11, pattern=r"^[A-Z]{4}\d{7}$")
     ] = Field(
@@ -21,7 +21,7 @@ class ContainerCreate(BaseModel):
         None, example="BOOK123456", description="Número do booking (opcional)"
     )
 
-    @field_validator("container_number")
+    @field_validator("number")
     @classmethod
     def validate_container_number_format(cls, value: str) -> str:
         pattern = r"^[A-Z]{4}\d{7}$"

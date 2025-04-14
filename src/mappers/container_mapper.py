@@ -3,9 +3,9 @@ from src.models.container_view import ContainerView, EventView
 from src.domain.container import Container, Event
 
 class ContainerMapper:
-    def to_container_domain_model(create_model: ContainerCreate) -> Container:
+    def to_container_domain_model(self, create_model: ContainerCreate) -> Container:
         return Container(
-            number=create_model.container_number,
+            number=create_model.number,
             bill_of_lading_number="",
             booking_number=create_model.booking_number,
             shipped_from="",
@@ -15,7 +15,7 @@ class ContainerMapper:
             events=[]
     )
 
-    def from_api_response(response_data):
+    def from_api_response(self, response_data):
         try:
             bl_data = response_data["Data"]["BillOfLadings"][0]  # Pegando o primeiro BL
             container_data = bl_data["ContainersInfo"][0]  # Pegando o primeiro contêiner

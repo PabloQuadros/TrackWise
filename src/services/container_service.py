@@ -2,20 +2,27 @@ from src.domain.container import Container
 from src.models.container_create import ContainerCreate
 from src.repositories.container_repository import ContainerRepository, get_container_repository
 from src.mappers.container_mapper import ContainerMapper, get_container_mapper
+from src.services.msc_service import MscService, get_msc_service
 from typing import Optional
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 
 
 class ContainerService:
-    def __init__(self, repository: ContainerRepository, container_mapper: ContainerMapper):
+    def __init__(self, repository: ContainerRepository, container_mapper: ContainerMapper, msc_service: MscService):
         self.repository = repository
         self.container_mapper = container_mapper
+        self.msc_service = msc_service
 
     def register_container(self, container_data: ContainerCreate) -> dict:
         # Verifica se já existe o container no banco
-        existing = self.repository.get_by_number(container_data.container_number)
-        if existing:
-            return {"message": "Container já está registrado!", "data": existing}
+        existing_on_database = self.repository.get_by_number(container_data.number)
+        if existing_on_database:
+            return {"message": "Container já está registrado!"}
+
+        #Verifica se o container existe no site do armador
+        existing_on_shipowner = self.msc_service.validate_container_existence(container_data.number)
+        if existing_on_shipowner is False:
+            raise HTTPException(status_code=404, detail="O número do container informado não foi localizado no site do armador")
 
         # Salva o novo container
         self.repository.save(self.container_mapper.to_container_domain_model(container_data))
@@ -30,6 +37,7 @@ class ContainerService:
 
 def get_container_service(
     repository: ContainerRepository = Depends(get_container_repository), 
-    container_mapper: ContainerMapper = Depends(get_container_mapper)
+    container_mapper: ContainerMapper = Depends(get_container_mapper),
+    msc_service: MscService = Depends(get_msc_service)
 ) -> ContainerService:
-    return ContainerService(repository, container_mapper)
+    return ContainerService(repository, container_mapper, msc_service)
