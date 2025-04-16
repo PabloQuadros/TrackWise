@@ -1,5 +1,5 @@
 from typing import Optional
-from src.database.connection import db
+from src.infrastructure.database.connection import db
 from src.domain.container import Container
 
 class ContainerRepository:

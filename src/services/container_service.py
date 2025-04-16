@@ -35,7 +35,7 @@ class ContainerService:
         container_data = self.repository.get_by_number(container_number)
         if container_data:
             return self.container_mapper.from_dict_to_view(container_data)
-        return None
+        return None       
 
 
 def get_container_service(

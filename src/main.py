@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from src.controllers.container_controller import router as container_router
-from src.services.telegram_bot_service import TelegramBotService
+from src.infrastructure.telegram.telegram_bot import TelegramBot
 from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-telegram_bot = TelegramBotService(token=os.getenv("TELEGRAM_BOT_TOKEN"))
+telegram_bot = TelegramBot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
