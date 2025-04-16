@@ -33,21 +33,52 @@ class TelegramBotService:
 
     async def handle_container_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         action = context.user_data.get("action")
-        number = update.message.text.strip()
+        text = update.message.text.strip()
 
         if action == "viewing_container":
             container_format = r"^[A-Za-z]{4}[0-9]{7}$"  # 4 letras seguidas de 7 números
-            if not re.match(container_format, number):
+            if not re.match(container_format, text):
                 await update.message.reply_text("⚠️ O número do container não está no formato correto. Tente novamente.")
                 return
-            container_info = self.container_service.find_by_container_number(number)
+            container_info = self.container_service.find_by_container_number(text)
             if not container_info:
-                await update.message.reply_text(f"⚠️ Container {number} não encontrado. Tente novamente.")
+                await update.message.reply_text(f"⚠️ Container {text} não encontrado. Tente novamente.")
                 return
             await update.message.reply_text(container_info.to_telegram_chat(), parse_mode="Markdown")
         elif action == "registering_container":
-            result = self.container_service.register_container(number)
-            await update.message.reply_text(result)
+            if "container_number" not in context.user_data:
+                container_format = r"^[A-Z]{4}[0-9]{7}$"
+                if not re.match(container_format, text):
+                    await update.message.reply_text("⚠️ O número do container não está no formato correto (ex: MSCU1234567).")
+                    return
+                context.user_data["container_number"] = text
+                await update.message.reply_text("Agora informe o nome do armador (ex: MSC, MAERSK, etc.):")
+                return
+
+            if "shipping_company" not in context.user_data:
+                context.user_data["shipping_company"] = text
+                await update.message.reply_text("Se desejar, informe o número do booking. Caso não tenha, digite - (hífen):")
+                return
+
+            if "booking_number" not in context.user_data:
+                context.user_data["booking_number"] = text if text != "-" else None
+
+                # Criar objeto ContainerCreate
+                from src.models.container_create import ContainerCreate
+                try:
+                    container_create = ContainerCreate(
+                        number=context.user_data["container_number"],
+                        shipping_company=context.user_data["shipping_company"],
+                        booking_number=context.user_data["booking_number"]
+                    )
+                    result = self.container_service.register_container(container_create)
+                    await update.message.reply_text(f"✅ Container cadastrado com sucesso!\n\n{result}")
+                except Exception as e:
+                    await update.message.reply_text(f"❌ Erro ao cadastrar o container: {str(e)}")
+
+                # Limpar dados após finalizar o cadastro
+                context.user_data.clear()
+                return
         else:
             await update.message.reply_text("Por favor, escolha uma opção primeiro usando /start.")
 

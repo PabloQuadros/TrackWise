@@ -13,21 +13,21 @@ class ContainerMapper:
             container_data = bl_data["ContainersInfo"][0]  # Pegando o primeiro contêiner
 
             return Container(
-                bill_of_lading_number=bl_data["BillOfLadingNumber"],
-                number=container_data["ContainerNumber"],
-                shipped_from=bl_data["GeneralTrackingInfo"]["ShippedFrom"],
-                shipped_to=bl_data["GeneralTrackingInfo"]["ShippedTo"],
-                port_of_load=bl_data["GeneralTrackingInfo"]["PortOfLoad"],
-                port_of_discharge=bl_data["GeneralTrackingInfo"]["PortOfDischarge"],
-                events=[  # Criando a lista de eventos com base nos dados
+                bill_of_lading_number=bl_data.get("BillOfLadingNumber", ""),
+                number=container_data.get("ContainerNumber", ""),
+                shipped_from=bl_data.get("GeneralTrackingInfo", {}).get("ShippedFrom", ""),
+                shipped_to=bl_data.get("GeneralTrackingInfo", {}).get("ShippedTo", ""),
+                port_of_load=bl_data.get("GeneralTrackingInfo", {}).get("PortOfLoad", ""),
+                port_of_discharge=bl_data.get("GeneralTrackingInfo", {}).get("PortOfDischarge", ""),
+                events=[
                     Event(
-                        order=event["Order"],
-                        date=event["Date"],
-                        location=event["Location"],
-                        un_location_code=event["UnLocationCode"],
-                        description=event["Description"],
-                        detail=event.get("Detail", [])  # Garantindo que o campo 'Detail' não seja nulo
-                    ) for event in container_data["Events"]
+                        order=event.get("Order", 0),
+                        date=event.get("Date", ""),
+                        location=event.get("Location", ""),
+                        un_location_code=event.get("UnLocationCode", "") or "",
+                        description=event.get("Description", ""),
+                        detail=event.get("Detail", [])
+                    ) for event in container_data.get("Events", [])
                 ]
             )
         except KeyError as e:
@@ -40,7 +40,7 @@ class ContainerMapper:
         return ContainerView(
             _id=str(data.get("_id")),
             bill_of_lading_number=data.get("bill_of_lading_number", ""),
-            booking_number=data.get("booking_number", ""),
+            booking_number=data.get("booking_number", "") or "",
             number=data.get("number", ""),
             shipped_from=data.get("shipped_from", ""),
             shipped_to=data.get("shipped_to", ""),
