@@ -4,11 +4,12 @@ from src.services.container_service import ContainerService
 from src.repositories.container_repository import get_container_repository
 from src.mappers.container_mapper import get_container_mapper
 from src.services.msc_service import get_msc_service
+from src.services.search_scheduling_service import get_search_scheduling_service
 import re
 
 class TelegramBotService:
     def __init__(self):
-        self.container_service = ContainerService(get_container_repository(), get_container_mapper(), get_msc_service())
+        self.container_service = ContainerService(get_container_repository(), get_container_mapper(), get_msc_service(), get_search_scheduling_service())
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[

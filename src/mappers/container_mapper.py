@@ -48,6 +48,28 @@ class ContainerMapper:
             port_of_discharge=data.get("port_of_discharge", ""),
             events=events
         )
+    
+    def from_domain_to_dict(self, container: Container) -> dict:
+        return {
+            "bill_of_lading_number": container.bill_of_lading_number,
+            "booking_number": container.booking_number,
+            "number": container.number,
+            "shipped_from": container.shipped_from,
+            "shipped_to": container.shipped_to,
+            "port_of_load": container.port_of_load,
+            "port_of_discharge": container.port_of_discharge,
+            "events": [
+                {
+                    "order": event.order,
+                    "date": event.date,
+                    "location": event.location,
+                    "un_location_code": event.un_location_code,
+                    "description": event.description,
+                    "detail": event.detail
+                }
+                for event in container.events
+            ]
+        }
 
 
 def get_container_mapper():

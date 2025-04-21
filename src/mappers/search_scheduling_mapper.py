@@ -4,26 +4,27 @@ from src.domain.search_scheduling import ContainerSchedule
 
 class SearchSchedulingMapper:
     
-    @staticmethod
-    def from_db_to_domain(doc) -> SearchScheduling:
+    def from_db_to_domain(self, doc) -> SearchScheduling:
         container_data = [
-            (entry["container_number"], datetime.strptime(entry["search_time"], "%H:%M:%S").time())
+            ContainerSchedule(
+                container_number=entry["container_number"],
+                search_time=datetime.strptime(entry["search_time"], "%H:%M:%S").time()
+            )
             for entry in doc.get("containers", [])
         ]
 
         start_time = datetime.strptime(doc["start_search_time"], "%H:%M:%S").time()
         end_time = datetime.strptime(doc["end_search_time"], "%H:%M:%S").time()
 
-        return SearchScheduling(container=container_data, start_search_time=start_time, end_search_time=end_time)
+        return SearchScheduling(containers=container_data, start_search_time=start_time, end_search_time=end_time)
     
-    @staticmethod
-    def from_domain_to_db(scheduling: SearchScheduling) -> dict:
+    def from_domain_to_db(self, scheduling: SearchScheduling) -> dict:
         container_data = [
             {
-                "container_number": number,
-                "search_time": search_time.strftime("%H:%M:%S")
+                "container_number": cs.container_number,
+                "search_time": cs.search_time.strftime("%H:%M:%S")
             }
-            for number, search_time in scheduling.container
+            for cs in scheduling.containers
         ]
 
         return {

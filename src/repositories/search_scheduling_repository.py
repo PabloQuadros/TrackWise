@@ -9,8 +9,7 @@ class SearchSchedulingRepository:
         self.mapper = search_scheduling_mapper
 
     def save(self, scheduling: SearchScheduling) -> None:
-
-        doc = self.mapper.to_db(scheduling)
+        doc = self.mapper.from_domain_to_db(scheduling)
         self.collection.update_one(
             filter={},
             update={"$set": doc},
@@ -23,7 +22,7 @@ class SearchSchedulingRepository:
         if not doc:
             return None
 
-        return self.mapper.to_domain(doc)
+        return self.mapper.from_db_to_domain(doc)
 
 def get_search_scheduling_repository(
     search_scheduling_mapper: SearchSchedulingMapper = Depends(get_search_scheduling_mapper)
