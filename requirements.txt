@@ -6,3 +6,4 @@ dataclasses
 fastapi
 uvicorn
 python-telegram-bot
+motor

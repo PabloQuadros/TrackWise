@@ -15,13 +15,13 @@ class ContainerService:
         self.msc_service = msc_service
         self.search_scheduling_service = search_scheduling_service
 
-    def register_container(self, container_data: ContainerCreate) -> dict:
+    async def register_container(self, container_data: ContainerCreate) -> dict:
         # Verifica se já existe o container no banco
-        existing_on_database = self.repository.get_by_number(container_data.number)
+        existing_on_database = await self.repository.get_by_number(container_data.number)
         if existing_on_database:
             return {"message": "Container já está registrado!"}
         #Verifica se o container existe no site do armador
-        existing_on_shipowner = self.msc_service.validate_container_existence(container_data.number)
+        existing_on_shipowner = await self.msc_service.validate_container_existence(container_data.number)
         if existing_on_shipowner.get("IsSuccess") is False:
             raise HTTPException(status_code=404, detail="O número do container informado não foi localizado no site do armador")
 
@@ -33,8 +33,8 @@ class ContainerService:
         self.search_scheduling_service.add_container_schedule(container.number)
         return {"message": "Container registrado com sucesso!", "data": container_data.dict()}
 
-    def find_by_container_number(self, container_number: str) -> Optional[dict]:
-        container_data = self.repository.get_by_number(container_number)
+    async def find_by_container_number(self, container_number: str) -> Optional[dict]:
+        container_data = await self.repository.get_by_number(container_number)
         if container_data:
             return self.container_mapper.from_dict_to_view(container_data)
         return None       

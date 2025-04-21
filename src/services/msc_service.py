@@ -3,7 +3,7 @@ import requests
 
 class MscService:
 
-    def get_tracking_info(self, tracking_number):
+    async def get_tracking_info(self, tracking_number):
         url = "https://www.msc.com/api/feature/tools/TrackingInfo"
         
         headers = {
@@ -25,8 +25,8 @@ class MscService:
             print(f"Erro {response.status_code}: {response.text}")
             return None
         
-    def validate_container_existence(self, container_number):
-        response = self.get_tracking_info(container_number)
+    async def validate_container_existence(self, container_number):
+        response = await self.get_tracking_info(container_number)
         return response
 
 def get_msc_service():
