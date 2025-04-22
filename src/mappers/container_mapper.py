@@ -1,6 +1,6 @@
 from src.models.container_create import ContainerCreate
 from src.models.container_view import ContainerView, EventView, SearchLogView
-from src.domain.container import Container, Event
+from src.domain.container import Container, Event, SearchLog, SearchStatus
 from datetime import datetime
 
 class ContainerMapper:
@@ -35,32 +35,42 @@ class ContainerMapper:
             print(f"Erro ao processar a resposta da API: chave ausente {e}")
             return None
     
-    def from_dict_to_view(self, data: dict) -> ContainerView:
-        events = [EventView(**event) for event in data.get("events", [])]
-        
+    def from_domain_to_view(self, container: Container) -> ContainerView:
+        events = [
+            EventView(
+                order=event.order,
+                date=event.date,
+                location=event.location,
+                un_location_code=event.un_location_code,
+                description=event.description,
+                detail=event.detail
+            )
+            for event in container.events
+        ]
+
         search_logs = [
             SearchLogView(
-                timestamp=datetime.fromisoformat(log["timestamp"]),
-                status=log["status"]
+                timestamp=log.timestamp,
+                status=log.status.value  # Convertendo Enum para string
             )
-            for log in data.get("search_logs", [])
-            ]   
+            for log in container.search_logs
+        ]
 
         return ContainerView(
-            _id=str(data.get("_id")),
-            bill_of_lading_number=data.get("bill_of_lading_number", ""),
-            booking_number=data.get("booking_number", "") or "",
-            number=data.get("number", ""),
-            shipped_from=data.get("shipped_from", ""),
-            shipped_to=data.get("shipped_to", ""),
-            port_of_load=data.get("port_of_load", ""),
-            port_of_discharge=data.get("port_of_discharge", ""),
+            _id=str(container._id) if container._id else None,
+            bill_of_lading_number=container.bill_of_lading_number,
+            booking_number=container.booking_number or "",
+            number=container.number,
+            shipped_from=container.shipped_from,
+            shipped_to=container.shipped_to,
+            port_of_load=container.port_of_load,
+            port_of_discharge=container.port_of_discharge,
             events=events,
             search_logs=search_logs
         )
-    
+        
     def from_domain_to_dict(self, container: Container) -> dict:
-        return {
+        data = {
             "bill_of_lading_number": container.bill_of_lading_number,
             "booking_number": container.booking_number,
             "number": container.number,
@@ -82,11 +92,50 @@ class ContainerMapper:
             "search_logs": [
                 {
                     "timestamp": log.timestamp.isoformat(),
-                    "status": log.status.value  # salva como string do enum
+                    "status": log.status.value
                 }
                 for log in container.search_logs
             ]
         }
+
+        if container._id is not None:
+            data["_id"] = container._id
+
+        return data
+    
+    def from_dict_to_domain(self, data: dict) -> Container:
+        events = [
+            Event(
+                order=event.get("order", 0),
+                date=event.get("date", ""),
+                location=event.get("location", ""),
+                un_location_code=event.get("un_location_code", ""),
+                description=event.get("description", ""),
+                detail=event.get("detail", [])
+            )
+            for event in data.get("events", [])
+        ]
+
+        search_logs = [
+            SearchLog(
+                timestamp=datetime.fromisoformat(log["timestamp"]),
+                status=SearchStatus(log["status"])  # Convertendo de string para Enum
+            )
+            for log in data.get("search_logs", [])
+        ]
+
+        return Container(
+            _id=str(data.get("_id")) if data.get("_id") else None,
+            number=data.get("number", ""),
+            bill_of_lading_number=data.get("bill_of_lading_number", ""),
+            shipped_from=data.get("shipped_from", ""),
+            shipped_to=data.get("shipped_to", ""),
+            port_of_load=data.get("port_of_load", ""),
+            port_of_discharge=data.get("port_of_discharge", ""),
+            booking_number=data.get("booking_number", ""),
+            events=events,
+            search_logs=search_logs
+        )
 
 
 def get_container_mapper():

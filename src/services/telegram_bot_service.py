@@ -1,15 +1,29 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from src.services.container_service import ContainerService
-from src.repositories.container_repository import get_container_repository
+from src.repositories.container_repository import ContainerRepository
 from src.mappers.container_mapper import get_container_mapper
 from src.services.msc_service import get_msc_service
-from src.services.search_scheduling_service import get_search_scheduling_service
+from src.services.search_scheduling_service import SearchSchedulingService
+from src.repositories.search_scheduling_repository import SearchSchedulingRepository
+from src.mappers.search_scheduling_mapper import get_search_scheduling_mapper
 import re
 
 class TelegramBotService:
     def __init__(self):
-        self.container_service = ContainerService(get_container_repository(), get_container_mapper(), get_msc_service(), get_search_scheduling_service())
+        container_mapper = get_container_mapper()
+        container_repository = ContainerRepository(container_mapper)
+        msc_service = get_msc_service()
+        search_scheduling_mapper = get_search_scheduling_mapper()
+        search_scheduling_repository = SearchSchedulingRepository(search_scheduling_mapper)
+        search_scheduling_service = SearchSchedulingService(search_scheduling_repository)
+
+        self.container_service = ContainerService(
+            container_repository,
+            container_mapper,
+            msc_service,
+            search_scheduling_service
+        )
 
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         keyboard = [[

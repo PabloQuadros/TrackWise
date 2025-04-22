@@ -35,8 +35,10 @@ class Container:
         port_of_discharge: str,
         events: Optional[List[Event]] = None,
         booking_number: Optional[str] = None,
-        search_logs: Optional[List[SearchLog]] = None
+        search_logs: Optional[List[SearchLog]] = None,
+        _id: Optional[str] = None
     ):
+        self._id = _id or None
         self.number = number
         self.bill_of_lading_number = bill_of_lading_number
         self.shipped_from = shipped_from

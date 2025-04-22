@@ -15,7 +15,10 @@ class ContainerRepository:
         print("Container salvo com sucesso!")
 
     async def get_by_number(self, container_number: str) -> Optional[dict]:
-        return await self.collection.find_one({"number": container_number})
+        container = await self.collection.find_one({"number": container_number})
+        if container is None:
+            return None
+        return self.container_mapper.from_dict_to_domain(container)
     
 def get_container_repository(
         container_mapper: ContainerMapper = Depends(get_container_mapper)
