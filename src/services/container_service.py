@@ -4,7 +4,7 @@ from src.repositories.container_repository import ContainerRepository, get_conta
 from src.mappers.container_mapper import ContainerMapper, get_container_mapper
 from src.services.msc_service import MscService, get_msc_service
 from src.services.search_scheduling_service import SearchSchedulingService, get_search_scheduling_service
-from typing import Optional
+from typing import Optional, List
 from fastapi import Depends, HTTPException
 from src.enums.SearchStatus import SearchStatus
 
@@ -40,7 +40,7 @@ class ContainerService:
             return self.container_mapper.from_domain_to_view(container)
         return None       
     
-    def compare_and_update_container(self, existing: Container, new_data: Container) -> List[str]:
+    async def compare_and_update_container(self, existing: Container, new_data: Container) -> List[str]:
         changes = []
 
         if existing.bill_of_lading_number != new_data.bill_of_lading_number:
@@ -85,6 +85,9 @@ class ContainerService:
 
         if changes:
             existing.events = new_data.events
+        
+        existing.add_search_log(SearchStatus.SUCCESS)
+        await self.repository.update(existing)
 
         return changes
 

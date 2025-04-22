@@ -6,6 +6,7 @@ from src.services.container_service import ContainerService, get_container_servi
 from fastapi import Depends
 from src.repositories.container_repository import ContainerRepository, get_container_repository
 from src.mappers.container_mapper import ContainerMapper, get_container_mapper
+from src.enums.SearchStatus import SearchStatus
 
 class ContainerSearchSchedulerService:
     def __init__(
@@ -37,7 +38,7 @@ class ContainerSearchSchedulerService:
 
         print(f"\n[{datetime.now()}] Buscando containers agendados entre {start.time()} e {end.time()}")
 
-        scheduling = self.scheduling_repository.get()
+        scheduling = await self.scheduling_repository.get()
         if not scheduling or not scheduling.containers:
             print("Nenhum agendamento encontrado para esta hora.")
             return
@@ -58,8 +59,17 @@ class ContainerSearchSchedulerService:
 
             print(f"[{datetime.now().time()}] Executando busca para {container.container_number}")
             msc_response = await self.msc_service.get_tracking_info(container.container_number)
-            actual_container_from_db = await self.container_repository.get_by_number(container.number)
-
+            actual_container = await self.container_repository.get_by_number(container.number)
+            if msc_response.get("IsSuccess") is False:
+                actual_container.add_search_log(SearchStatus.FAILURE)
+                await self.container_repository.update(actual_container)
+            new_container_data = self.container_mapper.from_api_response_to_domain_model(msc_response)
+            changes = await self.container_service.compare_and_update_container(actual_container, new_container_data)
+            if changes:
+                for change in changes:
+                    print(change)
+            else:
+                print("Nenhuma mudança detectada nas informações do contêiner.")
             
                 
 
