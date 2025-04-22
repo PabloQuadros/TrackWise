@@ -1,6 +1,7 @@
 from src.models.container_create import ContainerCreate
-from src.models.container_view import ContainerView, EventView
+from src.models.container_view import ContainerView, EventView, SearchLogView
 from src.domain.container import Container, Event
+from datetime import datetime
 
 class ContainerMapper:
     def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
@@ -37,6 +38,14 @@ class ContainerMapper:
     def from_dict_to_view(self, data: dict) -> ContainerView:
         events = [EventView(**event) for event in data.get("events", [])]
         
+        search_logs = [
+            SearchLogView(
+                timestamp=datetime.fromisoformat(log["timestamp"]),
+                status=log["status"]
+            )
+            for log in data.get("search_logs", [])
+            ]   
+
         return ContainerView(
             _id=str(data.get("_id")),
             bill_of_lading_number=data.get("bill_of_lading_number", ""),
@@ -46,7 +55,8 @@ class ContainerMapper:
             shipped_to=data.get("shipped_to", ""),
             port_of_load=data.get("port_of_load", ""),
             port_of_discharge=data.get("port_of_discharge", ""),
-            events=events
+            events=events,
+            search_logs=search_logs
         )
     
     def from_domain_to_dict(self, container: Container) -> dict:
@@ -68,6 +78,13 @@ class ContainerMapper:
                     "detail": event.detail
                 }
                 for event in container.events
+            ],
+            "search_logs": [
+                {
+                    "timestamp": log.timestamp.isoformat(),
+                    "status": log.status.value  # salva como string do enum
+                }
+                for log in container.search_logs
             ]
         }
 

@@ -6,6 +6,7 @@ from src.services.msc_service import MscService, get_msc_service
 from src.services.search_scheduling_service import SearchSchedulingService, get_search_scheduling_service
 from typing import Optional
 from fastapi import Depends, HTTPException
+from src.enums.SearchStatus import SearchStatus
 
 
 class ContainerService:
@@ -28,9 +29,10 @@ class ContainerService:
         #Mapeia da response do armador para a entidade de dominio
         container = self.container_mapper.from_api_response_to_domain_model(existing_on_shipowner)
         #Completa com as informações da requisição
+        container.add_search_log(SearchStatus.SUCCESS)
         container = self.container_mapper.complete_container_model_with_request_data(container, container_data)
-        self.repository.save(container)
-        self.search_scheduling_service.add_container_schedule(container.number)
+        await self.repository.save(container)
+        await self.search_scheduling_service.add_container_schedule(container.number)
         return {"message": "Container registrado com sucesso!", "data": container_data.dict()}
 
     async def find_by_container_number(self, container_number: str) -> Optional[dict]:

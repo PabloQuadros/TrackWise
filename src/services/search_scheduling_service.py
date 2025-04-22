@@ -8,8 +8,8 @@ class SearchSchedulingService:
     def __init__(self, repository: SearchSchedulingRepository):
         self.repository = repository
 
-    def add_container_schedule(self, container_number: str) -> SearchScheduling:
-        scheduling = self.repository.get()
+    async def add_container_schedule(self, container_number: str) -> SearchScheduling:
+        scheduling = await self.repository.get()
         
         if not scheduling:
             scheduling = SearchScheduling(
@@ -17,7 +17,7 @@ class SearchSchedulingService:
                 end_search_time=time(20, 0, 0)
             )
             scheduling.add_container_schedule(ContainerSchedule(container_number, scheduling.start_search_time)),  # Primeiro container recebe 08:00
-            self.repository.save(scheduling)
+            await self.repository.save(scheduling)
             return scheduling
         
         # Se já existirem agendamentos, devemos calcular o novo horário
@@ -25,7 +25,7 @@ class SearchSchedulingService:
         
         # Adiciona o novo container e seu horário de busca
         scheduling.add_container_schedule(ContainerSchedule(container_number, new_search_time))
-        self.repository.save(scheduling)
+        await self.repository.save(scheduling)
         
         return scheduling
 

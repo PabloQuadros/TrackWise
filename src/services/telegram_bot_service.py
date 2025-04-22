@@ -41,7 +41,7 @@ class TelegramBotService:
             if not re.match(container_format, text):
                 await update.message.reply_text("⚠️ O número do container não está no formato correto. Tente novamente.")
                 return
-            container_info = self.container_service.find_by_container_number(text)
+            container_info = await self.container_service.find_by_container_number(text)
             if not container_info:
                 await update.message.reply_text(f"⚠️ Container {text} não encontrado. Tente novamente.")
                 return
@@ -72,7 +72,7 @@ class TelegramBotService:
                         shipping_company=context.user_data["shipping_company"],
                         booking_number=context.user_data["booking_number"]
                     )
-                    result = self.container_service.register_container(container_create)
+                    result = await self.container_service.register_container(container_create)
                     await update.message.reply_text(f"✅ Container cadastrado com sucesso!\n\n{result}")
                 except Exception as e:
                     await update.message.reply_text(f"❌ Erro ao cadastrar o container: {str(e)}")

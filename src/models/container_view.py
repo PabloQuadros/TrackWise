@@ -1,5 +1,11 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from datetime import datetime
+from src.enums.SearchStatus import SearchStatus
+
+class SearchLogView(BaseModel):
+    timestamp: datetime
+    status: SearchStatus
 
 class EventView(BaseModel):
     order: int
@@ -24,6 +30,7 @@ class ContainerView(BaseModel):
     port_of_load: str
     port_of_discharge: str
     events: List[EventView] = []
+    search_logs: List[SearchLogView] = []
 
     def to_telegram_chat(self) -> str:
         # Formatação das informações do contêiner
@@ -39,6 +46,14 @@ class ContainerView(BaseModel):
 
         # Adiciona os eventos formatados
         event_info = "\n".join([event.to_telegram_chat() for event in self.events])
+        
+         # Logs de busca formatados (opcional)
+        if self.search_logs:
+            logs_info = "\n📊 **Histórico de Buscas**:\n"
+            for log in self.search_logs:
+                logs_info += f"🕒 {log.timestamp.strftime('%d/%m/%Y %H:%M:%S')} - {log.status.value}\n"
+        else:
+            logs_info = "\n📊 **Histórico de Buscas**: Nenhum registro\n"
 
         # Junta as informações do contêiner com os eventos
-        return container_info + event_info
+        return container_info + event_info + logs_info

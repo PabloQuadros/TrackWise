@@ -1,6 +1,11 @@
 from typing import List, Optional
-from pydantic import BaseModel
+from src.enums.SearchStatus import SearchStatus
+from datetime import datetime
 
+class SearchLog:
+    def __init__(self, timestamp: datetime, status: SearchStatus):
+        self.timestamp = timestamp
+        self.status = status
 
 class Event:
     def __init__(
@@ -29,7 +34,8 @@ class Container:
         port_of_load: str,
         port_of_discharge: str,
         events: Optional[List[Event]] = None,
-        booking_number: Optional[str] = None
+        booking_number: Optional[str] = None,
+        search_logs: Optional[List[SearchLog]] = None
     ):
         self.number = number
         self.bill_of_lading_number = bill_of_lading_number
@@ -39,3 +45,8 @@ class Container:
         self.port_of_discharge = port_of_discharge
         self.booking_number = booking_number
         self.events = events or []
+        self.search_logs = search_logs or []
+    
+    def add_search_log(self, status: SearchStatus):
+        log = SearchLog(timestamp=datetime.now(), status=status)
+        self.search_logs.append(log)

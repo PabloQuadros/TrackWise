@@ -8,16 +8,16 @@ class SearchSchedulingRepository:
         self.collection = db["search_scheduling"]
         self.mapper = search_scheduling_mapper
 
-    def save(self, scheduling: SearchScheduling) -> None:
+    async def save(self, scheduling: SearchScheduling) -> None:
         doc = self.mapper.from_domain_to_db(scheduling)
-        self.collection.update_one(
+        await self.collection.update_one(
             filter={},
             update={"$set": doc},
             upsert=True
         )
     
-    def get(self) -> SearchScheduling:
-        doc = self.collection.find_one()
+    async def get(self) -> SearchScheduling:
+        doc = await self.collection.find_one()
 
         if not doc:
             return None
