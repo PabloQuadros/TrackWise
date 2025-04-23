@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime, timedelta, time as dt_time
-from src.repositories.search_scheduling_repository import get_search_scheduling_repository, SearchSchedulingRepository
+from src.repositories.search_scheduling_repository import SearchSchedulingRepository
 from src.services.msc_service import MscService, get_msc_service 
-from src.services.container_service import ContainerService, get_container_service
-from fastapi import Depends
-from src.repositories.container_repository import ContainerRepository, get_container_repository
-from src.mappers.container_mapper import ContainerMapper, get_container_mapper
+from src.services.container_service import ContainerService
+from src.repositories.container_repository import ContainerRepository
+from src.mappers.container_mapper import ContainerMapper
+from src.mappers.search_scheduling_mapper import SearchSchedulingMapper
 from src.enums.SearchStatus import SearchStatus
+from src.services.search_scheduling_service import SearchSchedulingService
 
 class ContainerSearchSchedulerService:
     def __init__(
@@ -25,7 +26,8 @@ class ContainerSearchSchedulerService:
     async def start(self):
         while True:
             now = datetime.now()
-            next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+            #minute=0,
+            next_hour = (now + timedelta(minutes=5)).replace( second=0, microsecond=0)
             wait_seconds = (next_hour - now).total_seconds()
             print(f"[{now}] Aguardando {int(wait_seconds)} segundos até a próxima hora cheia...")
             await asyncio.sleep(wait_seconds)
@@ -33,8 +35,9 @@ class ContainerSearchSchedulerService:
 
     async def execute_search_routine(self):
         now = datetime.now()
-        start = now.replace(minute=0, second=0, microsecond=0)
-        end = start + timedelta(hours=1) - timedelta(seconds=1)
+        #minute=0,
+        start = now.replace( second=0, microsecond=0)
+        end = start + timedelta(minutes=5) - timedelta(seconds=1)
 
         print(f"\n[{datetime.now()}] Buscando containers agendados entre {start.time()} e {end.time()}")
 
@@ -59,7 +62,7 @@ class ContainerSearchSchedulerService:
 
             print(f"[{datetime.now().time()}] Executando busca para {container.container_number}")
             msc_response = await self.msc_service.get_tracking_info(container.container_number)
-            actual_container = await self.container_repository.get_by_number(container.number)
+            actual_container = await self.container_repository.get_by_number(container.container_number)
             if msc_response.get("IsSuccess") is False:
                 actual_container.add_search_log(SearchStatus.FAILURE)
                 await self.container_repository.update(actual_container)
@@ -72,11 +75,24 @@ class ContainerSearchSchedulerService:
                 print("Nenhuma mudança detectada nas informações do contêiner.")
             
                 
+def get_container_search_scheduling_service() -> ContainerSearchSchedulerService:
+    search_scheduling_mapper: SearchSchedulingMapper = SearchSchedulingMapper()
+    search_scheduling_repository: SearchSchedulingRepository = SearchSchedulingRepository(search_scheduling_mapper)
+    search_scheduling_service: SearchSchedulingService = SearchSchedulingService(search_scheduling_repository)
+    msc_service: MscService = get_msc_service()
+    container_mapper: ContainerMapper = ContainerMapper()
+    container_repository: ContainerRepository = ContainerRepository(container_mapper)
+    container_service: ContainerService = ContainerService(
+        container_repository,
+        container_mapper,
+        msc_service,
+        search_scheduling_service
+    )
 
-def get_container_search_scheduling_service(
-    repository: SearchSchedulingRepository = Depends(get_search_scheduling_repository), 
-    container_service: ContainerService = Depends(get_container_service),
-    msc_service: MscService = Depends(get_msc_service),
-    container_repository: ContainerRepository = Depends(get_container_repository),
-    container_mapper: ContainerMapper = Depends(get_container_mapper)) -> ContainerSearchSchedulerService:
-    return ContainerSearchSchedulerService(repository, container_service, msc_service, container_repository, container_mapper)
+    return ContainerSearchSchedulerService(
+        search_scheduling_repository,
+        container_service,
+        msc_service,
+        container_repository,
+        container_mapper
+    )

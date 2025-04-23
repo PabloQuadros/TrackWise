@@ -2,6 +2,7 @@ from src.models.container_create import ContainerCreate
 from src.models.container_view import ContainerView, EventView, SearchLogView
 from src.domain.container import Container, Event, SearchLog, SearchStatus
 from datetime import datetime
+from bson import ObjectId
 
 class ContainerMapper:
     def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
@@ -99,7 +100,7 @@ class ContainerMapper:
         }
 
         if container._id is not None:
-            data["_id"] = container._id
+            data["_id"] = ObjectId(container._id)
 
         return data
     
