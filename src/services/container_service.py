@@ -20,7 +20,7 @@ class ContainerService:
         # Verifica se já existe o container no banco
         existing_on_database = await self.repository.get_by_number(container_data.number)
         if existing_on_database:
-            return {"message": "Container já está registrado!"}
+            raise HTTPException(status_code=400, detail="Container já está registrado!")
         #Verifica se o container existe no site do armador
         existing_on_shipowner = await self.msc_service.validate_container_existence(container_data.number)
         if existing_on_shipowner.get("IsSuccess") is False:
@@ -86,7 +86,6 @@ class ContainerService:
         if changes:
             existing.events = new_data.events
         
-        existing.add_search_log(SearchStatus.SUCCESS)
         await self.repository.update(existing)
 
         return changes

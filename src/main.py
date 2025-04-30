@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from src.services.container_search_scheduling_service import get_container_search_scheduling_service
 import asyncio
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -26,4 +27,14 @@ async def lifespan(app: FastAPI):
     print("Bot Telegram finalizado.")
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(container_router, prefix="/api/v1")
+
+
+
