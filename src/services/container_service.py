@@ -7,7 +7,7 @@ from src.services.search_scheduling_service import SearchSchedulingService, get_
 from typing import Optional, List
 from fastapi import Depends, HTTPException
 from src.enums.SearchStatus import SearchStatus
-
+from src.models.container_grid import ContainerGrid
 
 class ContainerService:
     def __init__(self, repository: ContainerRepository, container_mapper: ContainerMapper, msc_service: MscService, search_scheduling_service: SearchSchedulingService):
@@ -93,7 +93,11 @@ class ContainerService:
     def _event_key(self, event: Event) -> str:
         # Chave única do evento — você pode mudar isso conforme sua lógica
         return f"{event.order}-{event.date}-{event.location}"
-
+    
+    async def get_all_for_grid(self) -> List[ContainerGrid]:
+        documents = await self.repository.find_all_for_grid()
+        result = [self.container_mapper.to_container_grid(doc) for doc in documents]
+        return result
 
 
 def get_container_service(

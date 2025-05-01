@@ -1,5 +1,6 @@
 from src.models.container_create import ContainerCreate
 from src.models.container_view import ContainerView, EventView, SearchLogView
+from src.models.container_grid import ContainerGrid
 from src.domain.container import Container, Event, SearchLog, SearchStatus
 from datetime import datetime
 from bson import ObjectId
@@ -136,6 +137,37 @@ class ContainerMapper:
             booking_number=data.get("booking_number", ""),
             events=events,
             search_logs=search_logs
+        )
+    
+    def to_container_grid(self, container: dict) -> ContainerGrid:
+
+        # Obter a descrição do evento com maior ordem
+        events = container.get("events", [])
+        if events:
+            latest_event = max(events, key=lambda e: e.get("order", 0))
+            description = latest_event.get("description", "")
+        else:
+            description = ""
+
+        # Obter o último search log com status Sucesso
+        search_logs = container.get("search_logs", [])
+        successful_logs = [
+            log for log in search_logs if log.get("status") == SearchStatus.SUCCESS.value
+        ]
+        if successful_logs:
+            latest_log = max(successful_logs, key=lambda log: log.get("timestamp"))
+            last_update = latest_log.get("timestamp")
+        else:
+            last_update = None
+
+        # Criar e retornar o ContainerGrid
+        return ContainerGrid(
+            id=str(container.get("_id")),
+            number=container.get("number", ""),
+            bill_of_lading_number=container.get("bill_of_lading_number", ""),
+            booking_number=container.get("booking_number", ""),
+            description=description,
+            last_update=last_update
         )
 
 

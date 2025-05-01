@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from src.infrastructure.database.connection import db
 from src.domain.container import Container
 from src.mappers.container_mapper import ContainerMapper, get_container_mapper
@@ -31,6 +31,18 @@ class ContainerRepository:
             {"_id": ObjectId(container._id)},
             container_dict
         )
+
+    async def find_all_for_grid(self) -> List[dict]:
+        projection = {
+            "_id": 1,
+            "number": 1,
+            "bill_of_lading_number": 1,
+            "booking_number": 1,
+            "events": 1,
+            "search_logs": 1
+        }
+        cursor = self.collection.find({}, projection)
+        return await cursor.to_list(length=None)
     
 def get_container_repository(
         container_mapper: ContainerMapper = Depends(get_container_mapper)
