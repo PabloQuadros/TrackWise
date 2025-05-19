@@ -35,6 +35,8 @@ class Container:
         port_of_discharge: str,
         events: Optional[List[Event]] = None,
         booking_number: Optional[str] = None,
+        master_document_number: Optional[str] = None,
+        house_document_number: Optional[str] = None,
         search_logs: Optional[List[SearchLog]] = None,
         _id: Optional[str] = None
     ):
@@ -46,6 +48,8 @@ class Container:
         self.port_of_load = port_of_load
         self.port_of_discharge = port_of_discharge
         self.booking_number = booking_number
+        self.master_document_number = master_document_number
+        self.house_document_number = house_document_number
         self.events = events or []
         self.search_logs = search_logs or []
     

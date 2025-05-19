@@ -21,6 +21,14 @@ class ContainerCreate(BaseModel):
         None, example="BOOK123456", description="Número do booking (opcional)"
     )
 
+    master_document_number: Optional[str] = Field(
+        None, example="OOLU1234567890", description="Número do Documento Master (opcional)"
+    )
+        
+    house_document_number: Optional[str] = Field(
+        None, example="FF12345678", description="Número do Documento House (opcional)"
+    )
+
     @field_validator("number")
     @classmethod
     def validate_container_number_format(cls, value: str) -> str:

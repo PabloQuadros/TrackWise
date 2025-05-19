@@ -8,6 +8,8 @@ from bson import ObjectId
 class ContainerMapper:
     def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
         container.booking_number = create_model.booking_number
+        container.master_document_number = create_model.master_document_number
+        container.house_document_number = create_model.house_document_number
         return container
 
     def from_api_response_to_domain_model(self, response_data):
@@ -62,6 +64,8 @@ class ContainerMapper:
             _id=str(container._id) if container._id else None,
             bill_of_lading_number=container.bill_of_lading_number,
             booking_number=container.booking_number or "",
+            master_document_number=container.master_document_number or "",
+            house_document_number=container.house_document_number or "",
             number=container.number,
             shipped_from=container.shipped_from,
             shipped_to=container.shipped_to,
@@ -75,6 +79,8 @@ class ContainerMapper:
         data = {
             "bill_of_lading_number": container.bill_of_lading_number,
             "booking_number": container.booking_number,
+            "master_document_number": container.master_document_number,
+            "house_document_number": container.house_document_number,
             "number": container.number,
             "shipped_from": container.shipped_from,
             "shipped_to": container.shipped_to,
@@ -135,6 +141,8 @@ class ContainerMapper:
             port_of_load=data.get("port_of_load", ""),
             port_of_discharge=data.get("port_of_discharge", ""),
             booking_number=data.get("booking_number", ""),
+            master_document_number=data.get("master_document_number", ""),
+            house_document_number=data.get("house_document_number", ""),
             events=events,
             search_logs=search_logs
         )
