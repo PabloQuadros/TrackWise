@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, StringConstraints, field_validator
 from typing import Annotated, Optional
 import re
+from src.enums.Shipowners import Shipowners
 
 class ContainerCreate(BaseModel):
     number: Annotated[
@@ -10,10 +11,7 @@ class ContainerCreate(BaseModel):
         ..., example="MSCU1234567", description="Número do container com 4 letras e 7 dígitos"
     )
 
-    shipping_company: Annotated[
-        str,
-        StringConstraints(min_length=1)
-    ] = Field(
+    shipowner: Shipowners = Field(
         ..., example="MSC", description="Nome do armador"
     )
 

@@ -2,21 +2,23 @@ from src.models.container_create import ContainerCreate
 from src.models.container_view import ContainerView, EventView, SearchLogView
 from src.models.container_grid import ContainerGrid
 from src.domain.container import Container, Event, SearchLog, SearchStatus
+from src.models.container_dto import ContainerDTO, EventDTO
 from datetime import datetime
 from bson import ObjectId
 
 class ContainerMapper:
-    def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
-        container.booking_number = create_model.booking_number
-        container.house_bill_of_lading_number = create_model.house_document_number
-        return container
+    # def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
+    #     container.booking_number = create_model.booking_number
+    #     container.house_bill_of_lading_number = create_model.house_document_number
+    #     container.shipowner = create_model.shipowner
+    #     return container
 
     def from_api_response_to_domain_model(self, response_data):
         try:
             bl_data = response_data["Data"]["BillOfLadings"][0]  # Pegando o primeiro BL
             container_data = bl_data["ContainersInfo"][0]  # Pegando o primeiro contêiner
 
-            return Container(
+            return ContainerDTO(
                 number=container_data.get("ContainerNumber", ""),
                 master_bill_of_lading_number=bl_data.get("BillOfLadingNumber", ""),
                 shipped_from=bl_data.get("GeneralTrackingInfo", {}).get("ShippedFrom", ""),
@@ -24,7 +26,7 @@ class ContainerMapper:
                 port_of_load=bl_data.get("GeneralTrackingInfo", {}).get("PortOfLoad", ""),
                 port_of_discharge=bl_data.get("GeneralTrackingInfo", {}).get("PortOfDischarge", ""),
                 events=[
-                    Event(
+                    EventDTO(
                         order=event.get("Order", 0),
                         date=event.get("Date", ""),
                         location=event.get("Location", ""),
@@ -70,7 +72,9 @@ class ContainerMapper:
             port_of_load=container.port_of_load,
             port_of_discharge=container.port_of_discharge,
             events=events,
-            search_logs=search_logs
+            search_logs=search_logs,
+            shipping_status=container.shipping_status,
+            shipowner=container.shipowner
         )
         
     def from_domain_to_dict(self, container: Container) -> dict:
@@ -83,6 +87,8 @@ class ContainerMapper:
             "shipped_to": container.shipped_to,
             "port_of_load": container.port_of_load,
             "port_of_discharge": container.port_of_discharge,
+            "shipping_status": container.shipping_status.value,
+            "shipowner": container.shipowner.value,
             "events": [
                 {
                     "order": event.order,
@@ -139,6 +145,8 @@ class ContainerMapper:
             booking_number=data.get("booking_number", ""),
             master_bill_of_lading_number=data.get("master_bill_of_lading_number", ""),
             house_bill_of_lading_number=data.get("house_bill_of_lading_number", ""),
+            shipping_status=data.get("shipping_status"),
+            shipowner=data.get("shipowner"),
             events=events,
             search_logs=search_logs
         )
@@ -169,8 +177,9 @@ class ContainerMapper:
             id=str(container.get("_id")),
             number=container.get("number", ""),
             master_bill_of_lading_number=container.get("master_bill_of_lading_number", ""),
-            house_bill_of_lading_number=container.get("house_bill_of_lading_number", ""),
+            shipowner=container.get("shipowner", ""),
             booking_number=container.get("booking_number", ""),
+            shipping_status=container.get("shipping_staus", ""),
             description=description,
             last_update=last_update
         )

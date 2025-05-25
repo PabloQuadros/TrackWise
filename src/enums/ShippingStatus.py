@@ -1,5 +1,5 @@
 from enum import Enum
 
 class ShippingStatus(Enum):
-    PROCESSANDO = "Em Processo"
-    FINALIZADO = "Finalizada"
+    PROCESSING = "Em Processo"
+    FINISHED = "Finalizada"

@@ -7,6 +7,7 @@ from src.services.search_scheduling_service import SearchSchedulingService, get_
 from typing import Optional, List
 from fastapi import Depends, HTTPException
 from src.enums.SearchStatus import SearchStatus
+from src.enums.ShippingStatus import ShippingStatus
 from src.models.container_grid import ContainerGrid
 
 class ContainerService:
@@ -17,21 +18,44 @@ class ContainerService:
         self.search_scheduling_service = search_scheduling_service
 
     async def register_container(self, container_data: ContainerCreate) -> dict:
-        # Verifica se já existe o container no banco
-        existing_on_database = await self.repository.get_by_number(container_data.number)
-        if existing_on_database:
+        # Verifica se já existe o container no banco em acompanhamento
+        existing_containers = await self.repository.get_all_by_number(container_data.number)
+        if any(
+            c.shipowner == container_data.shipowner.value and c.shipping_status == ShippingStatus.PROCESSING.value
+            for c in existing_containers
+        ):
             raise HTTPException(status_code=400, detail="Container já está registrado!")
         #Verifica se o container existe no site do armador
-        existing_on_shipowner = await self.msc_service.validate_container_existence(container_data.number)
-        if existing_on_shipowner.get("IsSuccess") is False:
+        shipowner_response = await self.msc_service.validate_container_existence(container_data.number)
+        if shipowner_response.get("IsSuccess") is False:
             raise HTTPException(status_code=404, detail="O número do container informado não foi localizado no site do armador")
         #Mapeia da response do armador para a entidade de dominio
-        container = self.container_mapper.from_api_response_to_domain_model(existing_on_shipowner)
-        #Completa com as informações da requisição
+        containerDto = self.container_mapper.from_api_response_to_domain_model(shipowner_response)
+        #Verificar se já existe o container no banco mas finalizado.
+        if any(
+            c.shipowner == container_data.shipowner.value and c.shipping_status == ShippingStatus.FINISHED.value and c.master_bill_of_lading_number == containerDto.master_bill_of_lading_number
+            for c in existing_containers
+        ):
+            raise HTTPException(status_code=400, detail="Container já está registrado!")
+        container = Container.build(
+            number=containerDto.number,
+            shipowner=container_data.shipowner,
+            shipped_from=containerDto.shipped_from,
+            shipped_to=containerDto.shipped_to,
+            port_of_load=containerDto.port_of_load,
+            port_of_discharge=containerDto.port_of_discharge,
+            events_dto=containerDto.events,
+            booking_number=containerDto.booking_number,
+            master_bill_of_lading_number=containerDto.master_bill_of_lading_number,
+            house_bill_of_lading_number=container_data.house_document_number
+        )
+
         container.add_search_log(SearchStatus.SUCCESS)
-        container = self.container_mapper.complete_container_model_with_request_data(container, container_data)
+
+        
         await self.repository.save(container)
-        await self.search_scheduling_service.add_container_schedule(container.number)
+        if container.shipping_status == ShippingStatus.PROCESSING:
+            await self.search_scheduling_service.add_container_schedule(container.number)
         return {"message": "Container registrado com sucesso!", "data": container_data.dict()}
 
     async def find_by_container_number(self, container_number: str) -> Optional[dict]:
