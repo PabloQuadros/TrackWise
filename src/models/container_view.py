@@ -22,10 +22,9 @@ class EventView(BaseModel):
 
 class ContainerView(BaseModel):
     id: Optional[str] = Field(alias="_id") 
-    bill_of_lading_number: str
     booking_number: str
-    master_document_number: str
-    house_document_number: str
+    master_bill_of_lading_number: str
+    house_bill_of_lading_number: str
     number: str
     shipped_from: str
     shipped_to: str
@@ -39,9 +38,8 @@ class ContainerView(BaseModel):
         container_info = (
             f"📦 **Número do Contêiner**: {self.number}\n"
             f"🔢 **Número de Reserva**: {self.booking_number}\n"
-            f"📄 **Número do Bill of Lading**: {self.bill_of_lading_number}\n"
-            f"📄 **Número do Documento Master**: {self.master_document_number}\n"
-            f"📄 **Número do Documento House**: {self.house_document_number}\n"
+            f"📄 **Número do Master Bill of Lading**: {self.master_bill_of_lading_number}\n"
+            f"📄 **Número do House Bill of Lading**: {self.house_bill_of_lading_number}\n"
             f"🌍 **De**: {self.shipped_from} ➡️ **Para**: {self.shipped_to}\n"
             f"⚓ **Porto de Embarque**: {self.port_of_load}\n"
             f"⚓ **Porto de Desembarque**: {self.port_of_discharge}\n"

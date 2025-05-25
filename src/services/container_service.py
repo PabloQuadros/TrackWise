@@ -43,9 +43,9 @@ class ContainerService:
     async def compare_and_update_container(self, existing: Container, new_data: Container) -> List[str]:
         changes = []
 
-        if existing.bill_of_lading_number != new_data.bill_of_lading_number:
-            existing.bill_of_lading_number = new_data.bill_of_lading_number
-            changes.append("Bill of Lading Number changed")
+        if existing.master_bill_of_lading_number != new_data.master_bill_of_lading_number:
+            existing.master_bill_of_lading_number = new_data.master_bill_of_lading_number
+            changes.append("Master Bill of Lading Number changed")
 
         if existing.shipped_from != new_data.shipped_from:
             existing.shipped_from = new_data.shipped_from

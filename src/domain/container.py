@@ -1,5 +1,6 @@
 from typing import List, Optional
 from src.enums.SearchStatus import SearchStatus
+from src.enums.ShippingStatus import ShippingStatus
 from datetime import datetime
 
 class SearchLog:
@@ -28,30 +29,30 @@ class Container:
     def __init__(
         self,
         number: str,
-        bill_of_lading_number: str,
         shipped_from: str,
         shipped_to: str,
         port_of_load: str,
         port_of_discharge: str,
+        shipping_status: ShippingStatus,
         events: Optional[List[Event]] = None,
         booking_number: Optional[str] = None,
-        master_document_number: Optional[str] = None,
-        house_document_number: Optional[str] = None,
+        master_bill_of_lading_number: Optional[str] = None,
+        house_bill_of_lading_number: Optional[str] = None,
         search_logs: Optional[List[SearchLog]] = None,
         _id: Optional[str] = None
     ):
         self._id = _id or None
         self.number = number
-        self.bill_of_lading_number = bill_of_lading_number
         self.shipped_from = shipped_from
         self.shipped_to = shipped_to
         self.port_of_load = port_of_load
         self.port_of_discharge = port_of_discharge
         self.booking_number = booking_number
-        self.master_document_number = master_document_number
-        self.house_document_number = house_document_number
+        self.master_bill_of_lading_number = master_bill_of_lading_number
+        self.house_bill_of_lading_number = house_bill_of_lading_number
         self.events = events or []
         self.search_logs = search_logs or []
+        self.shipping_status= shipping_status
     
     def add_search_log(self, status: SearchStatus):
         log = SearchLog(timestamp=datetime.now(), status=status)

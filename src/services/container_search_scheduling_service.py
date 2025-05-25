@@ -8,6 +8,7 @@ from src.mappers.container_mapper import ContainerMapper
 from src.mappers.search_scheduling_mapper import SearchSchedulingMapper
 from src.enums.SearchStatus import SearchStatus
 from src.services.search_scheduling_service import SearchSchedulingService
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 class ContainerSearchSchedulerService:
     def __init__(
@@ -23,38 +24,37 @@ class ContainerSearchSchedulerService:
         self.container_repository = container_repository
         self.container_mapper = container_mapper
 
-    async def start(self):
-        #while True:
-            # now = datetime.now()
-            # #minute=0,
-            # next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-            # wait_seconds = (next_hour - now).total_seconds()
-            # print(f"[{now}] Aguardando {int(wait_seconds)} segundos até a próxima hora cheia...")
-            # await asyncio.sleep(wait_seconds)
-            try:
-                await self.execute_search_routine()
-            except Exception as e:
-                print(f"[{datetime.now()}] Erro ao executar rotina de busca: {e}")
+    def start_scheduler(self):
+        scheduler = AsyncIOScheduler()
+        # Roda a cada hora cheia
+        scheduler.add_job(
+            self.execute_search_routine_wrapper,
+            'cron',  # tipo cron: baseado em hora/minuto/segundo
+            minute=0
+        )
+        scheduler.start()
+        print("[Scheduler] Agendador iniciado com rotina a cada hora cheia.")
+    
+    async def execute_search_routine_wrapper(self):
+        now = datetime.now().replace(minute=0, second=0, microsecond=0)
+        start = now
+        end = now + timedelta(hours=1) - timedelta(seconds=1)
 
-    async def execute_search_routine(self):
+        print(f"[{datetime.now()}] Executando wrapper da rotina entre {start.time()} e {end.time()}")
+        await self.execute_search_routine(start, end)
+    
+    async def execute_search_routine(self, start: datetime, end: datetime):
         try:
-            now = datetime.now()
-            start = now.replace(minute=0, second=0, microsecond=0)
-            end = start + timedelta(hours=1) - timedelta(seconds=1)
-
             print(f"\n[{datetime.now()}] Buscando containers agendados entre {start.time()} e {end.time()}")
 
             scheduling = await self.scheduling_repository.get()
             if not scheduling or not scheduling.containers:
                 print("Nenhum agendamento encontrado para esta hora.")
                 return
-            # containers_to_search = [
-            #     cs for cs in scheduling.containers
-            #     if start.time() <= cs.search_time <= end.time()
-            # ]
+
             containers_to_search = [
                 cs for cs in scheduling.containers
-                if datetime.combine(datetime.today(), cs.search_time) >= now
+                if start.time() <= cs.search_time <= end.time()
             ]
             containers_to_search.sort(key=lambda c: c.search_time)
 

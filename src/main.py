@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     await telegram_bot.start_in_background()
     print("Bot Telegram rodando...")
     
-    asyncio.create_task(container_search_scheduling_service.start())
+    container_search_scheduling_service.start_scheduler()
     print("Rotina de busca agendada iniciada...")
 
     yield

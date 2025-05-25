@@ -8,3 +8,4 @@ uvicorn
 python-telegram-bot
 motor
 requests
+apscheduler

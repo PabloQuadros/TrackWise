@@ -8,8 +8,7 @@ from bson import ObjectId
 class ContainerMapper:
     def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
         container.booking_number = create_model.booking_number
-        container.master_document_number = create_model.master_document_number
-        container.house_document_number = create_model.house_document_number
+        container.house_bill_of_lading_number = create_model.house_document_number
         return container
 
     def from_api_response_to_domain_model(self, response_data):
@@ -18,8 +17,8 @@ class ContainerMapper:
             container_data = bl_data["ContainersInfo"][0]  # Pegando o primeiro contêiner
 
             return Container(
-                bill_of_lading_number=bl_data.get("BillOfLadingNumber", ""),
                 number=container_data.get("ContainerNumber", ""),
+                master_bill_of_lading_number=bl_data.get("BillOfLadingNumber", ""),
                 shipped_from=bl_data.get("GeneralTrackingInfo", {}).get("ShippedFrom", ""),
                 shipped_to=bl_data.get("GeneralTrackingInfo", {}).get("ShippedTo", ""),
                 port_of_load=bl_data.get("GeneralTrackingInfo", {}).get("PortOfLoad", ""),
@@ -62,10 +61,9 @@ class ContainerMapper:
 
         return ContainerView(
             _id=str(container._id) if container._id else None,
-            bill_of_lading_number=container.bill_of_lading_number,
             booking_number=container.booking_number or "",
-            master_document_number=container.master_document_number or "",
-            house_document_number=container.house_document_number or "",
+            master_bill_of_lading_number=container.master_bill_of_lading_number or "",
+            house_bill_of_lading_number=container.house_bill_of_lading_number or "",
             number=container.number,
             shipped_from=container.shipped_from,
             shipped_to=container.shipped_to,
@@ -77,10 +75,9 @@ class ContainerMapper:
         
     def from_domain_to_dict(self, container: Container) -> dict:
         data = {
-            "bill_of_lading_number": container.bill_of_lading_number,
             "booking_number": container.booking_number,
-            "master_document_number": container.master_document_number,
-            "house_document_number": container.house_document_number,
+            "master_bill_of_lading_number": container.master_bill_of_lading_number,
+            "house_bill_of_lading_number": container.house_bill_of_lading_number,
             "number": container.number,
             "shipped_from": container.shipped_from,
             "shipped_to": container.shipped_to,
@@ -135,14 +132,13 @@ class ContainerMapper:
         return Container(
             _id=str(data.get("_id")) if data.get("_id") else None,
             number=data.get("number", ""),
-            bill_of_lading_number=data.get("bill_of_lading_number", ""),
             shipped_from=data.get("shipped_from", ""),
             shipped_to=data.get("shipped_to", ""),
             port_of_load=data.get("port_of_load", ""),
             port_of_discharge=data.get("port_of_discharge", ""),
             booking_number=data.get("booking_number", ""),
-            master_document_number=data.get("master_document_number", ""),
-            house_document_number=data.get("house_document_number", ""),
+            master_bill_of_lading_number=data.get("master_bill_of_lading_number", ""),
+            house_bill_of_lading_number=data.get("house_bill_of_lading_number", ""),
             events=events,
             search_logs=search_logs
         )
@@ -172,7 +168,8 @@ class ContainerMapper:
         return ContainerGrid(
             id=str(container.get("_id")),
             number=container.get("number", ""),
-            bill_of_lading_number=container.get("bill_of_lading_number", ""),
+            master_bill_of_lading_number=container.get("master_bill_of_lading_number", ""),
+            house_bill_of_lading_number=container.get("house_bill_of_lading_number", ""),
             booking_number=container.get("booking_number", ""),
             description=description,
             last_update=last_update
