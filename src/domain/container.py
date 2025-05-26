@@ -115,3 +115,42 @@ class Container:
             self.shipping_status = ShippingStatus.FINISHED
         else:
             self.shipping_status = ShippingStatus.PROCESSING
+    
+    def add_event(self, event: Event):
+        if any(e.order == event.order for e in self.events):
+            return
+
+        self.events.append(
+            Event(
+                order=event.order,
+                date=event.date,
+                location=event.location,
+                un_location_code=event.un_location_code or "",
+                description=event.description or "",
+                detail=event.detail or []
+            )
+        )
+    
+    def remove_event_by_order(self, order: int):
+        self.events = [e for e in self.events if e.order != order]
+                
+    def update_event(
+        self, 
+        order: int, 
+        date: str,
+        location: str,
+        un_location_code: str,
+        description: str,
+        detail: List[str] ):
+        event = next((e for e in self.events if e.order == order), None)
+        if event:
+            if event.date != date:
+                event.date = date
+            if event.location != location:
+                event.location = location
+            if event.un_location_code != un_location_code:
+                event.un_location_code = un_location_code
+            if event.description != description:
+                event.description = description
+            if event.detail != detail:
+                event.detail = detail

@@ -1,5 +1,5 @@
 from datetime import time
-from typing import List
+from typing import List, Optional
 
 class ContainerSchedule:
     def __init__(self, container_number: str, search_time: time):
@@ -7,10 +7,11 @@ class ContainerSchedule:
         self.search_time = search_time
 
 class SearchScheduling:
-    def __init__(self, start_search_time: time, end_search_time: time, containers: List[ContainerSchedule] = None):
+    def __init__(self, start_search_time: time, end_search_time: time, containers: List[ContainerSchedule] = None, _id: Optional[str] = None):
         self.start_search_time = start_search_time
         self.end_search_time = end_search_time
         self.containers: List[ContainerSchedule] = containers if containers is not None else []
+        self._id = _id or None
 
     def add_container_schedule(self, container_schedule: ContainerSchedule):
         self.containers.append(container_schedule)

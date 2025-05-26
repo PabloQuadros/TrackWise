@@ -9,6 +9,7 @@ from src.mappers.search_scheduling_mapper import SearchSchedulingMapper
 from src.enums.SearchStatus import SearchStatus
 from src.services.search_scheduling_service import SearchSchedulingService
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from src.enums.ShippingStatus import ShippingStatus
 
 class ContainerSearchSchedulerService:
     def __init__(
@@ -17,12 +18,14 @@ class ContainerSearchSchedulerService:
             container_service = ContainerService, 
             msc_service = MscService, 
             container_repository = ContainerRepository,
-            container_mapper = ContainerMapper):
+            container_mapper = ContainerMapper,
+            search_scheduling_service = SearchSchedulingService):
         self.scheduling_repository = scheduling_repository
         self.container_service = container_service
         self.msc_service = msc_service
         self.container_repository = container_repository
         self.container_mapper = container_mapper
+        self.search_scheduling_service=search_scheduling_service
 
     def start_scheduler(self):
         scheduler = AsyncIOScheduler()
@@ -76,23 +79,18 @@ class ContainerSearchSchedulerService:
             print(f"[{datetime.now().time()}] Executando busca para {container.container_number}")
             msc_response = await self.msc_service.get_tracking_info(container.container_number)
             actual_container = await self.container_repository.get_by_number(container.container_number)
-            
+
             if msc_response.get("IsSuccess") is False:
                 actual_container.add_search_log(SearchStatus.FAILURE)
                 await self.container_repository.update(actual_container)
                 print(f"[{datetime.now().time()}] Falha na busca de {container.container_number}")
                 return
 
-            new_container_data = self.container_mapper.from_api_response_to_domain_model(msc_response)
-            actual_container.add_search_log(SearchStatus.SUCCESS)
-            await self.container_repository.update(actual_container)
+            new_container_data = self.container_mapper.from_api_response_to_dto_model(msc_response)
 
-            changes = await self.container_service.compare_and_update_container(actual_container, new_container_data)
-            if changes:
-                for change in changes:
-                    print(change)
-            else:
-                print("Nenhuma mudança detectada nas informações do contêiner.")
+            updated_container = await self.container_service.compare_and_update_container(actual_container, new_container_data)
+            if(updated_container.shipping_status.value == ShippingStatus.FINISHED.value):
+                await self.search_scheduling_service.remove_container_schedule(updated_container.number)
         except Exception as e:
             print(f"[{datetime.now()}] Erro ao buscar container {container.container_number}: {e}")
             if actual_container:
@@ -120,5 +118,6 @@ def get_container_search_scheduling_service() -> ContainerSearchSchedulerService
         container_service,
         msc_service,
         container_repository,
-        container_mapper
+        container_mapper,
+        search_scheduling_service
     )

@@ -18,7 +18,10 @@ class ContainerRepository:
         print("Container salvo com sucesso!")
 
     async def get_by_number(self, container_number: str) -> Optional[dict]:
-        container = await self.collection.find_one({"number": container_number})
+        container = await self.collection.find_one({
+            "number": container_number,
+            "shipping_status": ShippingStatus.PROCESSING.value
+        })  
         if container is None:
             return None
         return self.container_mapper.from_dict_to_domain(container)
@@ -29,7 +32,7 @@ class ContainerRepository:
         
         container_dict = self.container_mapper.from_domain_to_dict(container)
 
-        result = await self.collection.replace_one(
+        await self.collection.replace_one(
             {"_id": ObjectId(container._id)},
             container_dict
         )

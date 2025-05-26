@@ -73,6 +73,17 @@ class SearchSchedulingService:
         start_seconds = start_time.hour * 3600 + start_time.minute * 60 + start_time.second
         end_seconds = end_time.hour * 3600 + end_time.minute * 60 + end_time.second
         return end_seconds - start_seconds
+    
+    async def remove_container_schedule(self, container_number: str):
+        scheduling = await self.repository.get()
+
+        if not scheduling or not scheduling.containers:
+            return
+
+        scheduling.containers = [
+            c for c in scheduling.containers if c.container_number != container_number
+        ]
+        await self.repository.update(scheduling)
 
 def get_search_scheduling_service(
     repository: SearchSchedulingRepository = Depends(get_search_scheduling_repository)

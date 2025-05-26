@@ -1,6 +1,8 @@
 from telegram.ext import ApplicationBuilder
 from src.services.telegram_bot_service import TelegramBotService
 import asyncio
+from telegram.error import Conflict
+
 
 class TelegramBot:
     def __init__(self, token: str):

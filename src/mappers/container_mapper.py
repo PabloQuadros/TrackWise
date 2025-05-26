@@ -5,6 +5,8 @@ from src.domain.container import Container, Event, SearchLog, SearchStatus
 from src.models.container_dto import ContainerDTO, EventDTO
 from datetime import datetime
 from bson import ObjectId
+from src.enums.ShippingStatus import ShippingStatus
+from src.enums.Shipowners import Shipowners
 
 class ContainerMapper:
     # def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
@@ -13,7 +15,7 @@ class ContainerMapper:
     #     container.shipowner = create_model.shipowner
     #     return container
 
-    def from_api_response_to_domain_model(self, response_data):
+    def from_api_response_to_dto_model(self, response_data):
         try:
             bl_data = response_data["Data"]["BillOfLadings"][0]  # Pegando o primeiro BL
             container_data = bl_data["ContainersInfo"][0]  # Pegando o primeiro contêiner
@@ -73,8 +75,8 @@ class ContainerMapper:
             port_of_discharge=container.port_of_discharge,
             events=events,
             search_logs=search_logs,
-            shipping_status=container.shipping_status,
-            shipowner=container.shipowner
+            shipping_status=container.shipping_status.value,
+            shipowner=container.shipowner.value
         )
         
     def from_domain_to_dict(self, container: Container) -> dict:
@@ -145,8 +147,8 @@ class ContainerMapper:
             booking_number=data.get("booking_number", ""),
             master_bill_of_lading_number=data.get("master_bill_of_lading_number", ""),
             house_bill_of_lading_number=data.get("house_bill_of_lading_number", ""),
-            shipping_status=data.get("shipping_status"),
-            shipowner=data.get("shipowner"),
+            shipping_status=ShippingStatus(data.get("shipping_status")),
+            shipowner=Shipowners(data.get("shipowner")),
             events=events,
             search_logs=search_logs
         )
