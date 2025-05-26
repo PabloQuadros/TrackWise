@@ -181,7 +181,7 @@ class ContainerMapper:
             master_bill_of_lading_number=container.get("master_bill_of_lading_number", ""),
             shipowner=container.get("shipowner", ""),
             booking_number=container.get("booking_number", ""),
-            shipping_status=container.get("shipping_staus", ""),
+            shipping_status=container.get("shipping_status", ""),
             description=description,
             last_update=last_update
         )

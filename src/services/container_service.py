@@ -22,7 +22,7 @@ class ContainerService:
         # Verifica se já existe o container no banco em acompanhamento
         existing_containers = await self.repository.get_all_by_number(container_data.number)
         if any(
-            c.shipowner == container_data.shipowner and c.shipping_status == ShippingStatus.PROCESSING.value
+            c.shipowner.value == container_data.shipowner.value and c.shipping_status.value == ShippingStatus.PROCESSING.value
             for c in existing_containers
         ):
             raise HTTPException(status_code=400, detail="Container já está registrado!")
@@ -34,7 +34,7 @@ class ContainerService:
         containerDto = self.container_mapper.from_api_response_to_dto_model(shipowner_response)
         #Verificar se já existe o container no banco mas finalizado.
         if any(
-            c.shipowner == container_data.shipowner and c.shipping_status == ShippingStatus.FINISHED.value and c.master_bill_of_lading_number == containerDto.master_bill_of_lading_number
+            c.shipowner.value == container_data.shipowner.value and c.shipping_status.value == ShippingStatus.FINISHED.value and c.master_bill_of_lading_number == containerDto.master_bill_of_lading_number
             for c in existing_containers
         ):
             raise HTTPException(status_code=400, detail="Container já está registrado!")
@@ -46,7 +46,7 @@ class ContainerService:
             port_of_load=containerDto.port_of_load,
             port_of_discharge=containerDto.port_of_discharge,
             events_dto=containerDto.events,
-            booking_number=containerDto.booking_number,
+            booking_number=container_data.booking_number,
             master_bill_of_lading_number=containerDto.master_bill_of_lading_number,
             house_bill_of_lading_number=container_data.house_document_number
         )
