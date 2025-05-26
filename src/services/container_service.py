@@ -132,6 +132,12 @@ class ContainerService:
         documents = await self.repository.find_all_for_grid()
         result = [self.container_mapper.to_container_grid(doc) for doc in documents]
         return result
+    
+    async def get_container_by_id (self, id: str) -> Optional[dict]:
+        container = await self.repository.get_by_id(id)
+        if container:
+            return self.container_mapper.from_domain_to_view(container)
+        return None  
 
 
 def get_container_service(

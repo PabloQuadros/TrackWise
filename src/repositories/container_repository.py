@@ -60,6 +60,14 @@ class ContainerRepository:
         cursor = self.collection.find({}, projection)
         return await cursor.to_list(length=None)
     
+    async def get_by_id(self, id: str) -> Optional[dict]:
+        container = await self.collection.find_one({
+            "_id": ObjectId(id),
+        })  
+        if container is None:
+            return None
+        return self.container_mapper.from_dict_to_domain(container)
+    
 def get_container_repository(
         container_mapper: ContainerMapper = Depends(get_container_mapper)
 ):
