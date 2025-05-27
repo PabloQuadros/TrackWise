@@ -7,6 +7,7 @@ from datetime import datetime
 from bson import ObjectId
 from src.enums.ShippingStatus import ShippingStatus
 from src.enums.Shipowners import Shipowners
+from src.enums.EventStatus import EventStatus
 
 class ContainerMapper:
     # def complete_container_model_with_request_data(self, container: Container, create_model: ContainerCreate) -> Container:
@@ -30,11 +31,12 @@ class ContainerMapper:
                 events=[
                     EventDTO(
                         order=event.get("Order", 0),
-                        date=event.get("Date", ""),
                         location=event.get("Location", ""),
                         un_location_code=event.get("UnLocationCode", "") or "",
                         description=event.get("Description", ""),
-                        detail=event.get("Detail", [])
+                        detail = (event.get("Detail") or [None]) if (event.get("Detail") or [None])[0] is not None else None,
+                        estimated_date=event.get("Date", "") if datetime.strptime(event.get("Date", ""), "%d/%m/%Y") > datetime.now() and "Estimated" in event.get("Description", "") else None,
+                        effective_date=event.get("Date", "") if datetime.strptime(event.get("Date", ""), "%d/%m/%Y") <= datetime.now() and "Estimated" not in event.get("Description", "") else None,
                     ) for event in container_data.get("Events", [])
                 ]
             )
@@ -46,11 +48,13 @@ class ContainerMapper:
         events = [
             EventView(
                 order=event.order,
-                date=event.date,
+                estimated_date=event.estimated_date,
+                effective_date=event.effective_date,
                 location=event.location,
                 un_location_code=event.un_location_code,
                 description=event.description,
-                detail=event.detail
+                detail=event.detail,
+                status=event.status.value
             )
             for event in container.events
         ]
@@ -94,11 +98,13 @@ class ContainerMapper:
             "events": [
                 {
                     "order": event.order,
-                    "date": event.date,
+                    "estimated_date": event.estimated_date,
+                    "effective_date": event.effective_date,
                     "location": event.location,
                     "un_location_code": event.un_location_code,
                     "description": event.description,
-                    "detail": event.detail
+                    "detail": event.detail,
+                    "status": event.status.value
                 }
                 for event in container.events
             ],
@@ -120,11 +126,13 @@ class ContainerMapper:
         events = [
             Event(
                 order=event.get("order", 0),
-                date=event.get("date", ""),
+                estimated_date=event.get("estimated_date", None),
+                effective_date=event.get("effective_date", None),
                 location=event.get("location", ""),
                 un_location_code=event.get("un_location_code", ""),
                 description=event.get("description", ""),
-                detail=event.get("detail", [])
+                detail=event.get("detail", []),
+                status=EventStatus(event.get("status")),
             )
             for event in data.get("events", [])
         ]

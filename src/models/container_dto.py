@@ -7,14 +7,16 @@ class EventDTO:
     def __init__(
         self,
         order: int,
-        date: str,
         location: str,
         un_location_code: str,
         description: str,
-        detail: List[str]
+        detail: Optional[List[str]] = None,
+        estimated_date: Optional[str] = None,
+        effective_date: Optional[str] = None
     ):
         self.order = order
-        self.date = date
+        self.estimated_date = estimated_date
+        self.effective_date = effective_date
         self.location = location
         self.un_location_code = un_location_code
         self.description = description

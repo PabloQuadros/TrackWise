@@ -2,8 +2,6 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
 from src.enums.SearchStatus import SearchStatus
-from src.enums.ShippingStatus import ShippingStatus
-from src.enums.Shipowners import Shipowners
 
 class SearchLogView(BaseModel):
     timestamp: datetime
@@ -11,16 +9,18 @@ class SearchLogView(BaseModel):
 
 class EventView(BaseModel):
     order: int
-    date: str
     location: str
     un_location_code: str
     description: str
-    detail: List[str]
+    status: str
+    detail: Optional[List[str]] = None
+    estimated_date: Optional[str] = None,
+    effective_date: Optional[str] = None,
 
     def to_telegram_chat(self) -> str:
         # Formatação do evento
         details = "\n".join(self.detail)
-        return f"📅 **Data**: {self.date}\n📍 **Localização**: {self.location}\n🔢 **Código da Localização**: {self.un_location_code}\n📝 **Descrição**: {self.description}\nℹ️ **Detalhes**: {details} \n"
+        return f"📅 **Data Estimada**: {self.estimated_date or '-'}\n📅 **Data Efetiva**: {self.effective_date or '-'}\n📍 **Localização**: {self.location}\n🔢 **Código da Localização**: {self.un_location_code}\n📝 **Descrição**: {self.description}\nℹ️ **Detalhes**: {details or '-'} \n🕐 **Status**: {self.status or '-'} \n"
 
 class ContainerView(BaseModel):
     id: Optional[str] = Field(alias="_id") 

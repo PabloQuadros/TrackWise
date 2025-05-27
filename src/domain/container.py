@@ -2,6 +2,7 @@ from typing import List, Optional
 from src.enums.SearchStatus import SearchStatus
 from src.enums.ShippingStatus import ShippingStatus
 from src.enums.Shipowners import Shipowners
+from src.enums.EventStatus import EventStatus
 from datetime import datetime
 
 class SearchLog:
@@ -13,18 +14,52 @@ class Event:
     def __init__(
         self,
         order: int,
-        date: str,
         location: str,
         un_location_code: str,
         description: str,
-        detail: List[str]
+        detail: Optional[List[str]] = None,
+        status: Optional[EventStatus] = None,
+        estimated_date: Optional[str] = None,
+        effective_date: Optional[str] = None,
     ):
         self.order = order
-        self.date = date
+        self.estimated_date = estimated_date
+        self.effective_date = effective_date
         self.location = location
         self.un_location_code = un_location_code
         self.description = description
         self.detail = detail
+        self.status = status
+
+    @classmethod
+    def build(       
+        cls,
+        order: int,
+        location: str,
+        un_location_code: str,
+        description: str,
+        detail: List[str],
+        estimated_date: Optional[str] = None,
+        effective_date: Optional[str] = None,
+    ):
+        event = cls(
+            order = order,
+            location = location,
+            un_location_code = un_location_code,
+            description = description,
+            detail = detail,
+            estimated_date = estimated_date,
+            effective_date = effective_date,    
+        )
+        event.set_event_status()
+        return event
+    
+    def set_event_status(self):
+        if self.effective_date is not None:
+            self.status = EventStatus.EFFECTIVE
+        else:
+            self.status = EventStatus.ESTIMATED
+
     
 class Container:
     def __init__(
@@ -81,9 +116,10 @@ class Container:
             master_bill_of_lading_number = master_bill_of_lading_number,
             house_bill_of_lading_number = house_bill_of_lading_number,
             events=[
-                    Event(
+                    Event.build(
                         order=event.order,
-                        date=event.date,
+                        estimated_date=event.estimated_date,
+                        effective_date=event.effective_date,
                         location=event.location,
                         un_location_code=event.un_location_code or "",
                         description=event.description or "",
@@ -121,9 +157,10 @@ class Container:
             return
 
         self.events.append(
-            Event(
+            Event.build(
                 order=event.order,
-                date=event.date,
+                estimated_date=event.estimated_date,
+                effective_date=event.effective_date,
                 location=event.location,
                 un_location_code=event.un_location_code or "",
                 description=event.description or "",
@@ -137,15 +174,18 @@ class Container:
     def update_event(
         self, 
         order: int, 
-        date: str,
         location: str,
         un_location_code: str,
         description: str,
-        detail: List[str] ):
+        detail: List[str],
+        estimated_date: Optional[str] = None,
+        effective_date: Optional[str] = None, ):
         event = next((e for e in self.events if e.order == order), None)
         if event:
-            if event.date != date:
-                event.date = date
+            if event.estimated_date != None:
+                event.date = estimated_date
+            if event.effective_date != None:
+                event.effective_date = effective_date
             if event.location != location:
                 event.location = location
             if event.un_location_code != un_location_code:
@@ -154,3 +194,4 @@ class Container:
                 event.description = description
             if event.detail != detail:
                 event.detail = detail
+            event.set_event_status()
