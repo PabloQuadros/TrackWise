@@ -45,7 +45,17 @@ class ContainerRepository:
             containers.append(container)
         return containers
 
-    async def find_all_for_grid(self) -> List[dict]:
+    async def find_all_for_grid(
+        self,
+        search: Optional[str],
+        page: int,
+        page_size: int
+    ) -> List[dict]:
+        query = {}
+
+        if search:
+            query["number"] = {"$regex": search, "$options": "i"}
+
         projection = {
             "_id": 1,
             "number": 1,
@@ -53,12 +63,14 @@ class ContainerRepository:
             "booking_number": 1,
             "events": 1,
             "search_logs": 1,
-            "shipowner":1,
+            "shipowner": 1,
             "shipping_status": 1
-
         }
-        cursor = self.collection.find({}, projection)
-        return await cursor.to_list(length=None)
+
+        skip = (page - 1) * page_size
+
+        cursor = self.collection.find(query, projection).skip(skip).limit(page_size)
+        return await cursor.to_list(length=page_size)
     
     async def get_by_id(self, id: str) -> Optional[dict]:
         container = await self.collection.find_one({
@@ -67,6 +79,13 @@ class ContainerRepository:
         if container is None:
             return None
         return self.container_mapper.from_dict_to_domain(container)
+    
+    async def count_all_for_grid(self, search: Optional[str]) -> int:
+        query = {}
+        if search:
+            query["number"] = {"$regex": search, "$options": "i"}
+        return await self.collection.count_documents(query)
+
     
 def get_container_repository(
         container_mapper: ContainerMapper = Depends(get_container_mapper)

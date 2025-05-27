@@ -144,7 +144,7 @@ class Container:
 
         is_empty_received = (
             last_event.description == "Empty received at CY" and
-            " ".join(last_event.detail) == "EMPTY"
+            " ".join(last_event.detail) == "EMPTY" and last_event.status is EventStatus.EFFECTIVE
         )
 
         if is_empty_received:

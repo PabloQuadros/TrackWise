@@ -1,8 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Query
 from src.models.container_create import ContainerCreate
 from src.services.container_service import ContainerService, get_container_service
-from typing import List
-from src.models.container_grid import ContainerGrid
+from typing import List, Optional
+from src.models.grid_paginated_response import GridPaginatedResponse
 
 router = APIRouter()
 
@@ -21,8 +21,11 @@ async def get_container(id: str, service: ContainerService = Depends(get_contain
         return {"message": "Container encontrado", "data": container}
     return {"message": "Container não encontrado", "data": None}
 
-@router.get("/containers", response_model=List[ContainerGrid])
+@router.get("/containers", response_model=GridPaginatedResponse)
 async def get_container_grid(
+    search: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1),
     container_service: ContainerService = Depends(get_container_service)
 ):
-    return await container_service.get_all_for_grid()
+    return await container_service.get_paginated_grid(search, page, page_size)

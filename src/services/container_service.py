@@ -128,11 +128,17 @@ class ContainerService:
         # Chave única do evento
         return f"{event.order}"
     
-    async def get_all_for_grid(self) -> List[ContainerGrid]:
-        documents = await self.repository.find_all_for_grid()
-        result = [self.container_mapper.to_container_grid(doc) for doc in documents]
-        return result
-    
+    async def get_paginated_grid(self, search: Optional[str], page: int, page_size: int):
+        items = await self.repository.find_all_for_grid(search, page, page_size)
+        total = await self.repository.count_all_for_grid(search)
+        return {
+            "items": [self.container_mapper.to_container_grid(doc) for doc in items],
+            "total": total,
+            "page": page,
+            "page_size": page_size
+        }
+
+        
     async def get_container_by_id (self, id: str) -> Optional[dict]:
         container = await self.repository.get_by_id(id)
         if container:
