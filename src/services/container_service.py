@@ -102,19 +102,22 @@ class ContainerService:
 
         for key in removed_keys:
             changes.append(f"Evento removido: {old_events[key].description} em {old_events[key].location}")
-            existing.remove_event_by_order(old_events[key])
+            existing.remove_event_by_order(old_events[key].order)
 
         for key in common_keys:
             old_event = old_events[key]
             new_event = new_events[key]
+            #new_event.set_event_status()
             if old_event.__dict__ != new_event.__dict__:
-                changes.append(f"Evento atualizado: {old_event.date} → {new_event.date} | {old_event.location} → {new_event.location} | "
+                changes.append(f"Evento atualizado: {old_event.estimated_date} → {new_event.estimated_date} | {old_event.effective_date} → {new_event.effective_date} | {old_event.location} → {new_event.location} | "
                                f"{old_event.un_location_code} → {new_event.un_location_code} | {old_event.description} → {new_event.description} | "
                                f"{old_event.detail} → {new_event.detail}")
-                existing.update_event(new_event.date, new_event.location, new_event.un_location_code, new_event.description, new_event.detail)
+                existing.update_event(estimated_date=new_event.estimated_date, effective_date=new_event.effective_date
+                                      ,location=new_event.location,un_location_code= new_event.un_location_code,description= new_event.description,detail= new_event.detail, order=old_event.order)
 
         existing.add_search_log(SearchStatus.SUCCESS)
         existing.set_shipping_status()
+        print(existing.__dict__)
         await self.repository.update(existing)
         if changes:
                 for change in changes:

@@ -36,7 +36,7 @@ class ContainerMapper:
                         description=event.get("Description", ""),
                         detail = (event.get("Detail") or [None]) if (event.get("Detail") or [None])[0] is not None else None,
                         estimated_date=event.get("Date", "") if datetime.strptime(event.get("Date", ""), "%d/%m/%Y") > datetime.now() and "Estimated" in event.get("Description", "") else None,
-                        effective_date=event.get("Date", "") if datetime.strptime(event.get("Date", ""), "%d/%m/%Y") <= datetime.now() and "Estimated" not in event.get("Description", "") else None,
+                        effective_date=event.get("Date", "") if datetime.strptime(event.get("Date", ""), "%d/%m/%Y") <= datetime.now() and "Estimated" not in event.get("Description", "") else None
                     ) for event in container_data.get("Events", [])
                 ]
             )

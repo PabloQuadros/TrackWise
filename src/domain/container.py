@@ -38,7 +38,7 @@ class Event:
         location: str,
         un_location_code: str,
         description: str,
-        detail: List[str],
+        detail:  Optional[List[str]] = None,
         estimated_date: Optional[str] = None,
         effective_date: Optional[str] = None,
     ):
@@ -182,9 +182,9 @@ class Container:
         effective_date: Optional[str] = None, ):
         event = next((e for e in self.events if e.order == order), None)
         if event:
-            if event.estimated_date != None:
-                event.date = estimated_date
-            if event.effective_date != None:
+            if estimated_date is not None:
+                event.estimated_date = estimated_date
+            if effective_date is not None:
                 event.effective_date = effective_date
             if event.location != location:
                 event.location = location

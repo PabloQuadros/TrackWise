@@ -1,7 +1,5 @@
 from typing import List, Optional
-
-from src.enums.ShippingStatus import ShippingStatus
-from src.enums.Shipowners import Shipowners
+from src.enums.EventStatus import EventStatus
 
 class EventDTO:
     def __init__(
@@ -12,7 +10,7 @@ class EventDTO:
         description: str,
         detail: Optional[List[str]] = None,
         estimated_date: Optional[str] = None,
-        effective_date: Optional[str] = None
+        effective_date: Optional[str] = None,
     ):
         self.order = order
         self.estimated_date = estimated_date
@@ -21,6 +19,13 @@ class EventDTO:
         self.un_location_code = un_location_code
         self.description = description
         self.detail = detail
+        self.status = self.set_event_status()
+    
+    def set_event_status(self):
+        if self.effective_date is not None:
+            self.status = EventStatus.EFFECTIVE
+        else:
+            self.status = EventStatus.ESTIMATED
     
 class ContainerDTO:
     def __init__(
