@@ -182,10 +182,8 @@ class Container:
         effective_date: Optional[str] = None, ):
         event = next((e for e in self.events if e.order == order), None)
         if event:
-            if estimated_date is not None:
-                event.estimated_date = estimated_date
-            if effective_date is not None:
-                event.effective_date = effective_date
+            event.estimated_date = estimated_date
+            event.effective_date = effective_date
             if event.location != location:
                 event.location = location
             if event.un_location_code != un_location_code:

@@ -19,7 +19,7 @@ class EventDTO:
         self.un_location_code = un_location_code
         self.description = description
         self.detail = detail
-        self.status = self.set_event_status()
+        self.status = None
     
     def set_event_status(self):
         if self.effective_date is not None:

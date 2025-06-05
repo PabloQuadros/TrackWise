@@ -107,7 +107,9 @@ class ContainerService:
         for key in common_keys:
             old_event = old_events[key]
             new_event = new_events[key]
-            #new_event.set_event_status()
+            new_event.set_event_status()
+            if new_event.estimated_date is None and old_event.estimated_date is not None:
+                new_event.estimated_date = old_event.estimated_date
             if old_event.__dict__ != new_event.__dict__:
                 changes.append(f"Evento atualizado: {old_event.estimated_date} → {new_event.estimated_date} | {old_event.effective_date} → {new_event.effective_date} | {old_event.location} → {new_event.location} | "
                                f"{old_event.un_location_code} → {new_event.un_location_code} | {old_event.description} → {new_event.description} | "
@@ -117,7 +119,6 @@ class ContainerService:
 
         existing.add_search_log(SearchStatus.SUCCESS)
         existing.set_shipping_status()
-        print(existing.__dict__)
         await self.repository.update(existing)
         if changes:
                 for change in changes:
