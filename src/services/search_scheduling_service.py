@@ -75,15 +75,21 @@ class SearchSchedulingService:
         return end_seconds - start_seconds
     
     async def remove_container_schedule(self, container_number: str):
-        scheduling = await self.repository.get()
+        try:
+            scheduling = await self.repository.get()
 
-        if not scheduling or not scheduling.containers:
-            return
+            if not scheduling or not scheduling.containers:
+                return
 
-        scheduling.containers = [
-            c for c in scheduling.containers if c.container_number != container_number
-        ]
-        await self.repository.update(scheduling)
+            was_removed = scheduling.remove_container_by_number(container_number)
+
+            if was_removed:
+                await self.repository.update(scheduling)
+
+            return was_removed
+        except Exception as e:
+            print(f"Erro ao remover agendamento do container: {str(e)}")
+            return False
 
 def get_search_scheduling_service(
     repository: SearchSchedulingRepository = Depends(get_search_scheduling_repository)

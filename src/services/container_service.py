@@ -149,6 +149,24 @@ class ContainerService:
             return self.container_mapper.from_domain_to_view(container)
         return None  
 
+    async def delete_container_by_id(self, id: str) -> dict:
+        container = await self.repository.get_by_id(id)
+        if not container:
+            raise HTTPException(status_code=404, detail="Container não encontrado.")
+
+        try:
+            deleted = await self.repository.delete_by_id(id)
+
+            if not deleted:
+                raise HTTPException(status_code=500, detail="Erro ao tentar deletar o container.")
+
+            if container.shipping_status == ShippingStatus.PROCESSING:
+                await self.search_scheduling_service.remove_container_schedule(container.number)
+
+            return {"message": "Container deletado com sucesso!", "container_id": id}
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Erro interno ao deletar o container: {str(e)}")
 
 def get_container_service(
     repository: ContainerRepository = Depends(get_container_repository), 

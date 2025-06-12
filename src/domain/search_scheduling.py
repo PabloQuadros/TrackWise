@@ -18,3 +18,8 @@ class SearchScheduling:
 
     def get_all_search_times(self) -> List[time]:
         return sorted([c.search_time for c in self.containers])
+    
+    def remove_container_by_number(self, container_number: str) -> bool:
+        original_length = len(self.containers)
+        self.containers = [c for c in self.containers if c.container_number != container_number]
+        return len(self.containers) < original_length

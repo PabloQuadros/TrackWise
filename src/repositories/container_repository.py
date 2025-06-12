@@ -85,6 +85,10 @@ class ContainerRepository:
         if search:
             query["number"] = {"$regex": search, "$options": "i"}
         return await self.collection.count_documents(query)
+    
+    async def delete_by_id(self, id: str) -> bool:
+        result = await self.collection.delete_one({"_id": ObjectId(id)})
+        return result.deleted_count == 1
 
     
 def get_container_repository(
