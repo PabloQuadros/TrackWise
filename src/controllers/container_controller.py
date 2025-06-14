@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, status
 from src.models.container_create import ContainerCreate
+from src.models.container_update import ContainerUpdate
 from src.services.container_service import ContainerService, get_container_service
 from typing import List, Optional
 from src.models.grid_paginated_response import GridPaginatedResponse
@@ -34,6 +35,21 @@ async def get_container_grid(
 async def delete_container(id: str, service: ContainerService = Depends(get_container_service)):
     try:
         result = await service.delete_container_by_id(id)
+        return {"message": result["message"], "container_id": result["container_id"]}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro inesperado: {str(e)}")
+    
+@router.put("/containers/{id}", status_code=status.HTTP_200_OK)
+async def update_container(id: str, container_update: ContainerUpdate, service: ContainerService = Depends(get_container_service)):
+    try:
+        if container_update.id != id:
+            raise HTTPException(
+                status_code=400,
+                detail=f"O ID da rota ('{id}') é diferente do ID do corpo da requisição ('{container_update.id}')."
+            )
+        result = await service.update_container(container_update.id, container_update.booking_number, container_update.house_bill_of_lading_number)
         return {"message": result["message"], "container_id": result["container_id"]}
     except HTTPException as e:
         raise e

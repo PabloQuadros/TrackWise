@@ -26,16 +26,18 @@ class ContainerRepository:
             return None
         return self.container_mapper.from_dict_to_domain(container)
     
-    async def update(self, container: Container) -> None:
+    async def update(self, container: Container) -> bool:
         if container._id is None:
             raise ValueError("O container precisa ter um _id para ser atualizado.")
         
         container_dict = self.container_mapper.from_domain_to_dict(container)
 
-        await self.collection.replace_one(
+        result = await self.collection.replace_one(
             {"_id": ObjectId(container._id)},
             container_dict
         )
+
+        return result.modified_count > 0
     
     async def get_all_by_number(self, container_number: str) -> List[Container]:
         cursor = self.collection.find({"number": container_number})

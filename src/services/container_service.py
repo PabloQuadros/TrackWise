@@ -167,6 +167,27 @@ class ContainerService:
         
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Erro interno ao deletar o container: {str(e)}")
+    
+    async def update_container(
+            self, 
+            id: str, 
+            booking_number: Optional[str] = None,
+            house_bill_of_lading_number: Optional[str] = None):
+        container = await self.repository.get_by_id(id)
+        if not container:
+            raise HTTPException(status_code=404, detail="Container não encontrado.")
+
+        try:
+            container.update(booking_number=booking_number, house_bill_of_lading_number=house_bill_of_lading_number)
+            updated = await self.repository.update(container)
+
+            if not updated:
+                raise HTTPException(status_code=500, detail="Erro ao tentar atualizar o container.")
+
+            return {"message": "Container atualizado com sucesso!", "container_id": id}
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Erro interno ao atualizar o container: {str(e)}")
 
 def get_container_service(
     repository: ContainerRepository = Depends(get_container_repository), 

@@ -193,3 +193,12 @@ class Container:
             if event.detail != detail:
                 event.detail = detail
             event.set_event_status()
+    
+    def update(
+        self,
+        booking_number: Optional[str] = None,
+        house_bill_of_lading_number: Optional[str] = None,
+    ):
+        self.booking_number = booking_number
+        self.house_bill_of_lading_number = house_bill_of_lading_number
+
