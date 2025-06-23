@@ -29,19 +29,18 @@ class ContainerSearchSchedulerService:
 
     def start_scheduler(self):
         scheduler = AsyncIOScheduler()
-        # Roda a cada hora cheia
         scheduler.add_job(
             self.execute_search_routine_wrapper,
-            'cron',  # tipo cron: baseado em hora/minuto/segundo
-            minute=0
+            'interval', 
+            minutes=1
         )
         scheduler.start()
         print("[Scheduler] Agendador iniciado com rotina a cada hora cheia.")
     
     async def execute_search_routine_wrapper(self):
-        now = datetime.now().replace(minute=0, second=0, microsecond=0)
+        now = datetime.now().replace(second=0, microsecond=0)
         start = now
-        end = now + timedelta(hours=1) - timedelta(seconds=1)
+        end = now + timedelta(minutes=1) - timedelta(seconds=1)
 
         print(f"[{datetime.now()}] Executando wrapper da rotina entre {start.time()} e {end.time()}")
         await self.execute_search_routine(start, end)

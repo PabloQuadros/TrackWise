@@ -1,4 +1,4 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 from src.services.container_service import ContainerService
 from src.repositories.container_repository import ContainerRepository
@@ -7,6 +7,8 @@ from src.services.msc_service import get_msc_service
 from src.services.search_scheduling_service import SearchSchedulingService
 from src.repositories.search_scheduling_repository import SearchSchedulingRepository
 from src.mappers.search_scheduling_mapper import get_search_scheduling_mapper
+from src.enums.Shipowners import Shipowners
+from src.models.container_create import ContainerCreate
 import re
 
 class TelegramBotService:
@@ -55,7 +57,7 @@ class TelegramBotService:
             if not re.match(container_format, text):
                 await update.message.reply_text("⚠️ O número do container não está no formato correto. Tente novamente.")
                 return
-            container_info = await self.container_service.find_by_container_number(text)
+            container_info = await self.container_service.find_by_container_number_to_telegram(text)
             if not container_info:
                 await update.message.reply_text(f"⚠️ Container {text} não encontrado. Tente novamente.")
                 return
@@ -67,31 +69,46 @@ class TelegramBotService:
                     await update.message.reply_text("⚠️ O número do container não está no formato correto (ex: MSCU1234567).")
                     return
                 context.user_data["container_number"] = text
-                await update.message.reply_text("Agora informe o nome do armador (ex: MSC, MAERSK, etc.):")
+
+                shipowners_list = [[shipowner.value] for shipowner in Shipowners]
+                reply_markup = ReplyKeyboardMarkup(shipowners_list, one_time_keyboard=True, resize_keyboard=True)
+
+                await update.message.reply_text(
+                    "Agora selecione o armador clicando em uma das opções abaixo:",
+                    reply_markup=reply_markup
+                )
                 return
 
             if "shipping_company" not in context.user_data:
-                context.user_data["shipping_company"] = text
+                valid_shipowners = [shipowner.value for shipowner in Shipowners]
+                if text.upper() not in valid_shipowners:
+                    await update.message.reply_text("⚠️ Armador inválido. Por favor, escolha uma opção da lista.")
+                    return
+
+                context.user_data["shipping_company"] = text.upper()
                 await update.message.reply_text("Se desejar, informe o número do booking. Caso não tenha, digite - (hífen):")
                 return
 
             if "booking_number" not in context.user_data:
-                context.user_data["booking_number"] = text if text != "-" else None
+                context.user_data["booking_number"] = text if text != "-" else ""
+                await update.message.reply_text("Se desejar, informe o número do House Document. Caso não tenha, digite - (hífen):")
+                return
 
-                # Criar objeto ContainerCreate
-                from src.models.container_create import ContainerCreate
+            if "house_document_number" not in context.user_data:
+                context.user_data["house_document_number"] = text if text != "-" else ""
+
                 try:
                     container_create = ContainerCreate(
                         number=context.user_data["container_number"],
-                        shipping_company=context.user_data["shipping_company"],
-                        booking_number=context.user_data["booking_number"]
+                        shipowner=context.user_data["shipping_company"],
+                        booking_number=context.user_data["booking_number"],
+                        house_document_number=context.user_data["house_document_number"]
                     )
                     result = await self.container_service.register_container(container_create)
-                    await update.message.reply_text(f"✅ Container cadastrado com sucesso!\n\n{result}")
+                    await update.message.reply_text(f"✅ Container cadastrado com sucesso!")
                 except Exception as e:
                     await update.message.reply_text(f"❌ Erro ao cadastrar o container: {str(e)}")
 
-                # Limpar dados após finalizar o cadastro
                 context.user_data.clear()
                 return
         else:

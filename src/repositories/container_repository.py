@@ -92,6 +92,13 @@ class ContainerRepository:
         result = await self.collection.delete_one({"_id": ObjectId(id)})
         return result.deleted_count == 1
 
+    async def get_by_number_to_telegram(self, container_number: str) -> Optional[dict]:
+        container = await self.collection.find_one({
+            "number": container_number,
+        })  
+        if container is None:
+            return None
+        return self.container_mapper.from_dict_to_domain(container)
     
 def get_container_repository(
         container_mapper: ContainerMapper = Depends(get_container_mapper)

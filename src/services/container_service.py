@@ -19,7 +19,7 @@ class ContainerService:
         self.search_scheduling_service = search_scheduling_service
 
     async def register_container(self, container_data: ContainerCreate) -> dict:
-        # Verifica se já existe o container no banco em acompanhamento
+        # Verifica se ja existe o container no banco em acompanhamento
         existing_containers = await self.repository.get_all_by_number(container_data.number)
         if any(
             c.shipowner.value == container_data.shipowner.value and c.shipping_status.value == ShippingStatus.PROCESSING.value
@@ -32,7 +32,7 @@ class ContainerService:
             raise HTTPException(status_code=404, detail="O número do container informado não foi localizado no site do armador")
         #Mapeia da response do armador para a entidade de dominio
         containerDto = self.container_mapper.from_api_response_to_dto_model(shipowner_response)
-        #Verificar se já existe o container no banco mas finalizado.
+        #Verificar se ja existe o container no banco mas finalizado.
         if any(
             c.shipowner.value == container_data.shipowner.value and c.shipping_status.value == ShippingStatus.FINISHED.value and c.master_bill_of_lading_number == containerDto.master_bill_of_lading_number
             for c in existing_containers
@@ -59,8 +59,8 @@ class ContainerService:
             await self.search_scheduling_service.add_container_schedule(container.number)
         return {"message": "Container registrado com sucesso!", "data": container_data.dict()}
 
-    async def find_by_container_number(self, container_number: str) -> Optional[dict]:
-        container = await self.repository.get_by_number(container_number)
+    async def find_by_container_number_to_telegram(self, container_number: str) -> Optional[dict]:
+        container = await self.repository.get_by_number_to_telegram(container_number)
         if container:
             return self.container_mapper.from_domain_to_view(container)
         return None       
