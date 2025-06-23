@@ -163,10 +163,12 @@ class ContainerMapper:
     
     def to_container_grid(self, container: dict) -> ContainerGrid:
 
-        # Obter a descrição do evento com maior ordem
+        # Obter a descrição do evento com maior ordem que possua effectiveDate definido
         events = container.get("events", [])
-        if events:
-            latest_event = max(events, key=lambda e: e.get("order", 0))
+        events_with_date = [e for e in events if e.get("effective_date") is not None]
+
+        if events_with_date:
+            latest_event = max(events_with_date, key=lambda e: e.get("order", 0))
             description = latest_event.get("description", "")
         else:
             description = ""

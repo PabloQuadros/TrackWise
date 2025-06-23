@@ -12,8 +12,10 @@ async def create_container(container: ContainerCreate, service: ContainerService
     try:
         result = await service.register_container(container)
         return {"message": "Container registered", "data": result}
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Erro inesperado: {str(e)}")
 
 @router.get("/containers/{id}")
 async def get_container(id: str, service: ContainerService = Depends(get_container_service)):
